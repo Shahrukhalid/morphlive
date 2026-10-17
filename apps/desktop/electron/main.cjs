@@ -1,5 +1,7 @@
-const { app, BrowserWindow, protocol, net, session, systemPreferences } = require('electron');
+const { app, BrowserWindow, protocol, net, session, systemPreferences, ipcMain } = require('electron');
 const path = require('node:path');
+const fs = require('node:fs');
+const { validatePreferences } = require('./preferences.cjs');
 const { pathToFileURL } = require('node:url');
 protocol.registerSchemesAsPrivileged([{ scheme: 'morph', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 let main;
@@ -29,7 +31,18 @@ app.whenReady().then(() => {
     }
     callback(true);
   });
-  main = new BrowserWindow({ width: 1500, height: 980, minWidth: 1050, minHeight: 740, backgroundColor: '#0c0e13', title: 'MorphLive', webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
+  const settingsPath=path.join(app.getPath('userData'),'morphlive-preferences.json');
+  ipcMain.on('preferences:load', event => {
+    event.returnValue='';
+    if(!local(event.senderFrame?.url))return;
+    try { if(fs.statSync(settingsPath).size<=16384)event.returnValue=validatePreferences(fs.readFileSync(settingsPath,'utf8'))||''; } catch {}
+  });
+  ipcMain.handle('preferences:save', (event, serialized) => {
+    if(!local(event.senderFrame?.url))return false;
+    const valid=validatePreferences(serialized);if(!valid)return false;
+    try { fs.writeFileSync(settingsPath+'.tmp',valid,{mode:0o600});fs.renameSync(settingsPath+'.tmp',settingsPath);return true; } catch {return false;}
+  });
+  main = new BrowserWindow({ width: 1500, height: 980, minWidth: 1050, minHeight: 740, backgroundColor: '#0c0e13', title: 'MorphLive', webPreferences: { preload: path.join(__dirname,'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
   main.removeMenu();
   main.webContents.on('will-navigate', (event) => event.preventDefault());
   main.webContents.setWindowOpenHandler(({ url }) => local(url) && new URL(url).search === '?output=1'
@@ -38,4 +51,5 @@ app.whenReady().then(() => {
   main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
 });
+app.on('before-quit', () => session.defaultSession.flushStorageData());
 app.on('window-all-closed', () => app.quit());
