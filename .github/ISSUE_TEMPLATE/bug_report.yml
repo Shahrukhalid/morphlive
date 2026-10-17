@@ -1,0 +1,22 @@
+name: Bug report
+description: Report a reproducible application problem.
+body:
+  - type: markdown
+    attributes:
+      value: Do not include private media, device IDs, personal paths, credentials, or sensitive logs.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include expected behavior and reproduction steps.
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: OS and app version
+  - type: textarea
+    id: route
+    attributes:
+      label: Output route and test result
+      description: Include OBS/cable versions if relevant. Distinguish PASS, FAIL, BLOCKED, and NOT TESTED.
