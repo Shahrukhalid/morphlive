@@ -24,6 +24,7 @@ export function App() {
   const engine = useRef(new AudioEngine()); const frame = useRef(0); const busyTracking = useRef(false);
   const points = useRef<Point[]>([]); const pointTime = useRef(0); const trackerReady = useRef(false);
   const liveSettings = useRef(settings); const liveOriginal = useRef(original);
+  const outputPending = useRef(false);
   const projector = useRef<Window | null>(null); const channel = useRef<BroadcastChannel | null>(null);
   const captureGeneration = useRef(0); const audioGeneration = useRef(0);
   const activePersona = personas.find(p => p.id === settings.persona)!;
@@ -33,9 +34,10 @@ export function App() {
   useEffect(() => {
     void refresh(); navigator.mediaDevices.addEventListener('devicechange', refresh);
     channel.current = new BroadcastChannel('morphlive-output');
+    channel.current.onmessage = event => { if(event.data.type === 'ack') outputPending.current=false; };
     return () => { stopCamera(); stopAudio(); channel.current?.close(); projector.current?.close(); navigator.mediaDevices.removeEventListener('devicechange', refresh); };
   }, []);
-  useEffect(() => { try { localStorage.setItem('morphlive.settings.v1', JSON.stringify(settings)); } catch { setError('Settings could not be saved. Check available disk space.'); } }, [settings]);
+  useEffect(() => { try { const serialized=JSON.stringify(settings); localStorage.setItem('morphlive.settings.v1', serialized); void window.morphPreferences?.save(serialized).then(saved=>{if(!saved)setError('Preferences could not be saved to disk.');}); } catch { setError('Settings could not be saved. Check available disk space.'); } }, [settings]);
   useEffect(() => { engine.current.configure({ pitch: settings.pitch, formant: settings.formant, robot: settings.robot, gain: settings.gain, gate: settings.gate, muted, bypass: original }, settings.offset); }, [settings, muted, original, audioOn]);
   useEffect(() => {
     const handler = () => { stopCamera(); stopAudio(); };
@@ -99,9 +101,9 @@ export function App() {
             tracker.postMessage({ type:'frame', bitmap, timestamp: performance.now() },[bitmap]);
           }).catch(() => { busyTracking.current=false; });
         }
-        if (projector.current && !projector.current.closed && now-lastOutput>65 && !outputBusy) {
-          outputBusy=true; lastOutput=now;
-          void createImageBitmap(target).then(bitmap => { channel.current?.postMessage({ type:'frame', bitmap }); bitmap.close(); }).catch(() => setError('Output window stopped receiving frames. Reopen it.')).finally(() => { outputBusy=false; });
+        if (projector.current && !projector.current.closed && now-lastOutput>65 && !outputBusy && !outputPending.current) {
+          outputBusy=true; outputPending.current=true; lastOutput=now;
+          void createImageBitmap(target).then(bitmap => { channel.current?.postMessage({ type:'frame', bitmap }); bitmap.close(); }).catch(() => { outputPending.current=false; setError('Output window stopped receiving frames. Reopen it.'); }).finally(() => { outputBusy=false; });
         }
         if (now-lastStats>1000) {
           const measuredFps=count*1000/(now-lastStats), measuredProcess=total/Math.max(count,1), measuredDropped=dropped;
@@ -130,7 +132,7 @@ export function App() {
     if (projector.current && !projector.current.closed) { projector.current.focus(); return; }
     projector.current=window.open(new URL('?output=1',location.href).href,'MorphLive Output','width=1280,height=720');
     if (!projector.current) { setError('Output window blocked. Allow local popup windows.'); return; }
-    setOutputOn(true);
+    outputPending.current=false; setOutputOn(true);
   }
   function diagnostics() {
     const data={ app:'MorphLive',version:'0.1.0', metrics, cameraActive:cameraOn,audioActive:audioOn,tracking,persona:settings.persona, profile:settings.profile, outputWindow:!!projector.current&&!projector.current.closed, note:'Device names, identifiers, personal paths, and media are excluded. Latency is an estimate, not an end-to-end measurement.' };
@@ -179,7 +181,7 @@ export function Projector() {
     const channel=new BroadcastChannel('morphlive-output');
     const clear=()=>{const ctx=canvas.current?.getContext('2d');if(!ctx)return;ctx.fillStyle='#090b10';ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.fillStyle='#a4adbe';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText('MorphLive · Output stopped',ctx.canvas.width/2,ctx.canvas.height/2);};
     clear();
-    channel.onmessage=event=>{ if(event.data.type==='stop'){clear();return;} const bitmap=event.data.bitmap as ImageBitmap; if(!bitmap)return;last=performance.now(); const target=canvas.current!;if(target.width!==bitmap.width||target.height!==bitmap.height){target.width=bitmap.width;target.height=bitmap.height;}target.getContext('2d')!.drawImage(bitmap,0,0);bitmap.close(); };
+    channel.onmessage=event=>{ if(event.data.type==='stop'){clear();return;} const bitmap=event.data.bitmap as ImageBitmap; if(!bitmap)return;last=performance.now(); const target=canvas.current!;if(target.width!==bitmap.width||target.height!==bitmap.height){target.width=bitmap.width;target.height=bitmap.height;}target.getContext('2d')!.drawImage(bitmap,0,0);bitmap.close(); channel.postMessage({type:'ack'}); };
     const timer=setInterval(()=>{if(performance.now()-last>1200)clear();},500);
     return()=>{channel.close();clearInterval(timer);};
   },[]);

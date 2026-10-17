@@ -19,7 +19,7 @@ export type Settings = { persona: string; autoVoice: boolean; pitch: number; for
 export const defaults: Settings = { persona: 'neutral', autoVoice: true, pitch: 0, formant: 0, robot: 0, gain: 1, intensity: .65, disclosure: true, gate: false, profile: 'Balanced', debug: false, offset: 0, custom: [] };
 export function loadSettings(): Settings {
   try {
-    const saved = JSON.parse(localStorage.getItem('morphlive.settings.v1') || '{}');
+    const saved = JSON.parse(window.morphPreferences?.load() || localStorage.getItem('morphlive.settings.v1') || '{}');
     const value = { ...defaults };
     for (const key of ['autoVoice','disclosure','gate','debug'] as const) if (typeof saved[key] === 'boolean') value[key] = saved[key];
     for (const [key, min, max] of [['pitch',-12,12],['formant',-6,6],['robot',0,1],['gain',0,2],['intensity',0,1],['offset',0,250]] as const) if (Number.isFinite(saved[key])) value[key] = Math.min(max, Math.max(min, saved[key]));
