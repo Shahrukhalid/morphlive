@@ -8,6 +8,9 @@ Version 0.1.0 is an experimental preview, not a completed production application
 - Thirteen automated audio/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.
 - Dependency audit after downloader override: zero reported vulnerabilities.
+- GitHub CI tests, source build, privacy scan, license inventory, and dependency
+  audit: PASS on macOS and Windows hosted runners. This is not hardware support
+  certification. A public Dependabot signature false positive was corrected.
 - Unsigned arm64 .app packaging and local application launch: PASS.
 - Actual webcam capture at 1280 × 720: PASS in short local runtime check.
 - Local MediaPipe CPU worker face acquisition: PASS after classic-worker fix.
@@ -18,7 +21,8 @@ Version 0.1.0 is an experimental preview, not a completed production application
   ongoing processing. Estimated internal audio delay readout: 38 ms.
 - Pitch changes with preserved duration, independent envelope control, exact mute,
   output ceiling, finite samples, and fixed DSP buffers: automated checks PASS.
-- Dedicated anonymous output window: PASS for local canvas reception.
+- Dedicated anonymous output window: PASS for local canvas reception after the
+  readiness handshake fix. Escape in the projector closed capture/output: PASS.
 - Local emergency stop: camera/output shutdown exercised.
 - Source privacy scan: PASS; no private media or model weights selected for Git.
 - Public source publication authorized explicitly by the user. Only the new
@@ -42,7 +46,9 @@ Version 0.1.0 is an experimental preview, not a completed production application
 
 - Audible transformed speech naturalness, intelligibility, clicks and actual
   end-to-end latency: NOT TESTED. Silent processing is not a listening test.
-- External OBS virtual-camera reception: NOT TESTED.
+- External OBS 32.1.0 virtual-camera reception: NOT TESTED. Local setup was
+  attempted, but OBS crash recovery and unreliable native source controls blocked
+  completion through automation.
 - BlackHole microphone route: BLOCKED; driver absent. No installation attempted.
 - Zoom, Meet, Teams, Discord call acceptance: NOT TESTED.
 - Sustained 720p30, 1080p, 30-minute memory/drift tests: NOT TESTED.

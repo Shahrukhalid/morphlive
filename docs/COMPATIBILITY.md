@@ -29,8 +29,10 @@ count as passing external integration tests.
 - macOS / Google Meet / Safari: version not collected; NOT TESTED.
 - macOS / Microsoft Teams: version not collected; NOT TESTED.
 - macOS / Discord: version not collected; NOT TESTED.
-- macOS / OBS: installed; clean MorphLive output window works locally, but OBS
-  source capture and external virtual-camera reception NOT TESTED.
+- macOS / OBS 32.1.0: local integration check attempted. OBS displayed a crash-
+  recovery prompt, and native source controls could not be operated reliably
+  through automation. External virtual-camera reception remains NOT TESTED.
+  The clean MorphLive output window itself receives live anonymous frames.
 - macOS / BlackHole: BLOCKED for specified route because BlackHole is not installed.
   No driver installation was performed.
 - Windows 10/11 / Zoom, Meet, Teams, Discord, OBS: NOT TESTED. Shared code and a
