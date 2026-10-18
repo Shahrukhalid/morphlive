@@ -1,6 +1,12 @@
 [
   {"id":"fictional-female","name":"Fictional adult · feminine","kind":"fictional","pitch":4,"formant":2},
   {"id":"fictional-male","name":"Fictional adult · masculine","kind":"fictional","pitch":-3,"formant":-2},
+  {"id":"satya-nadella","name":"Satya Nadella · Executive","kind":"executive","pitch":-2,"formant":-1},
+  {"id":"tim-cook","name":"Tim Cook · Executive","kind":"executive","pitch":-1,"formant":0},
+  {"id":"cillian-murphy","name":"Cillian Murphy · Character","kind":"actor","pitch":-3,"formant":-2},
+  {"id":"keanu-reeves","name":"Keanu Reeves · Character","kind":"actor","pitch":-4,"formant":-2},
+  {"id":"emma-stone","name":"Emma Stone · Character","kind":"actor","pitch":2,"formant":1},
+  {"id":"salma-hayek","name":"Salma Hayek · Character","kind":"actor","pitch":3,"formant":2},
   {"id":"shah-rukh-khan","name":"Shah Rukh Khan","kind":"actor","pitch":-3,"formant":-2},
   {"id":"hrithik-roshan","name":"Hrithik Roshan","kind":"actor","pitch":-3,"formant":-2},
   {"id":"leonardo-dicaprio","name":"Leonardo DiCaprio","kind":"actor","pitch":-2,"formant":-1},
