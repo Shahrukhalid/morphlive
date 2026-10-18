@@ -37,12 +37,16 @@ def main():
                         raise ValueError('Unknown reference')
                     if engine is not None:
                         raise ValueError('Engine already running')
-                    if request.get('backend')=='faceswap':
+                    widescreen = request.get('widescreen') is not False
+                    backend=request.get('backend','faceswap')
+                    if backend=='faceswap':
                         from faceswap import FaceSwapEngine
                         engine=FaceSwapEngine(reference,enhance=request.get('enhance') is True)
+                    elif backend=='portrait':
+                        engine = PortraitEngine(reference, widescreen=widescreen)
                     else:
-                        engine = PortraitEngine(reference)
-                    send({'ok': True, 'device': engine.wrapper.device})
+                        raise ValueError('Unknown neural backend')
+                    send({'ok': True, 'device': engine.wrapper.device, 'backend': backend})
                 elif op == 'frame' and engine is not None:
                     encoded = request.get('jpeg', '')
                     if not isinstance(encoded, str) or len(encoded) > 1_400_000:
@@ -50,8 +54,11 @@ def main():
                     raw = base64.b64decode(encoded, validate=True)
                     check_jpeg(raw)
                     bgr = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
-                    if bgr is None or bgr.shape[0] > 1080 or bgr.shape[1] > 1920:
-                        raise ValueError('Invalid frame dimensions')
+                    if bgr is None:
+                        raise ValueError('Invalid frame decoding')
+                    if bgr.shape[0] > 1080 or bgr.shape[1] > 1920:
+                        scale = min(1920 / bgr.shape[1], 1080 / bgr.shape[0])
+                        bgr = cv2.resize(bgr, (round(bgr.shape[1] * scale), round(bgr.shape[0] * scale)))
                     rgb, ms, tracked = engine.process(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
                     last_shape=rgb.shape
                     if virtual is not None:
@@ -76,6 +83,10 @@ def main():
                 elif op == 'reference' and engine is not None:
                     engine.set_reference(request.get('reference'))
                     send({'ok':True})
+                elif op == 'enhance' and engine is not None:
+                    if hasattr(engine, 'set_enhance'):
+                        engine.set_enhance(request.get('enhance') is True)
+                    send({'ok':True, 'enhanced': getattr(engine, 'restorer', None) is not None})
                 elif op == 'stop':
                     send({'ok':True})
                     break

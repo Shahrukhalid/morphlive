@@ -34,7 +34,8 @@ sys.path.insert(0, str(VENDOR))
 
 
 class PortraitEngine:
-    def __init__(self, reference='fictional-female'):
+    def __init__(self, reference='fictional-female', widescreen=True):
+        self.widescreen = widescreen
         # Keep upstream load messages off the stdio response channel.
         with contextlib.redirect_stdout(sys.stderr):
             from src.config.inference_config import InferenceConfig
@@ -49,7 +50,13 @@ class PortraitEngine:
             if os.environ.get('MORPHLIVE_FP16') == '1' and self.wrapper.device == 'mps':
                 self.wrapper.inference_cfg.flag_use_half_precision = True
                 self.wrapper.inference_ctx = lambda: torch.autocast(device_type='mps', dtype=torch.float16)
-        model = ROOT / 'apps/desktop/public/models/face_landmarker.task'
+        model_paths = [
+            ROOT / 'apps/desktop/public/models/face_landmarker.task',
+            ROOT / 'dist/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'apps/desktop/public/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'dist/models/face_landmarker.task',
+        ]
+        model = next((p for p in model_paths if p.exists()), model_paths[0])
         self.detector = mp.tasks.vision.FaceLandmarker.create_from_options(
             mp.tasks.vision.FaceLandmarkerOptions(
                 base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),
@@ -84,13 +91,29 @@ class PortraitEngine:
             self.source_rotation = self.rotation(self.source['pitch'], self.source['yaw'], self.source['roll'])
         self.initial = None
 
+    def format_widescreen(self, portrait_512, target_w=1280, target_h=720):
+        scaled = cv2.resize(portrait_512, (target_h, target_h), interpolation=cv2.INTER_LINEAR)
+        bg = cv2.resize(portrait_512, (target_w // 4, target_h // 4), interpolation=cv2.INTER_AREA)
+        bg = cv2.GaussianBlur(bg, (19, 19), 0)
+        bg = cv2.resize(bg, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+        x_offset = (target_w - target_h) // 2
+        feather = 24
+        alpha = np.ones((target_h, target_h, 1), dtype=np.float32)
+        alpha[:, :feather] = np.linspace(0, 1, feather)[None, :, None]
+        alpha[:, -feather:] = np.linspace(1, 0, feather)[None, :, None]
+        canvas = bg
+        center_roi = canvas[:, x_offset:x_offset + target_h]
+        canvas[:, x_offset:x_offset + target_h] = (scaled * alpha + center_roi * (1.0 - alpha)).astype(np.uint8)
+        return canvas
+
     def process(self, rgb):
         started = time.perf_counter()
         crop = self.crop(rgb)
         if crop is None:
             # Never pass the original identity through when tracking is lost.
             self.initial = None
-            output = np.zeros((512, 512, 3), dtype=np.uint8)
+            out_shape = (720, 1280, 3) if self.widescreen else (512, 512, 3)
+            output = np.zeros(out_shape, dtype=np.uint8)
             return output, (time.perf_counter()-started)*1000, False
         with torch.inference_mode():
             current = self.wrapper.get_kp_info(self.wrapper.prepare_source(crop))
@@ -108,6 +131,8 @@ class PortraitEngine:
             driving = self.wrapper.stitching(self.source_points, driving)
             decoded = self.wrapper.warp_decode(self.features, self.source_points, driving)
             output = np.ascontiguousarray(self.wrapper.parse_output(decoded['out'])[0])
+            if self.widescreen:
+                output = self.format_widescreen(output)
         return output, (time.perf_counter()-started)*1000, True
 
     def close(self):

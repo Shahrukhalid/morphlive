@@ -16,5 +16,5 @@ def reference_rgb(path):
 
 def check_jpeg(raw):
     with Image.open(BytesIO(raw)) as image:
-        if image.format!='JPEG' or not 1<=image.width<=1920 or not 1<=image.height<=1080:
+        if image.format!='JPEG' or not 1<=image.width<=3840 or not 1<=image.height<=3840:
             raise ValueError('Invalid frame dimensions or format')
