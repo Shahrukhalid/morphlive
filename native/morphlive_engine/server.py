@@ -79,6 +79,10 @@ def main():
                 elif op == 'reference' and engine is not None:
                     engine.set_reference(request.get('reference'))
                     send({'ok':True})
+                elif op == 'enhance' and engine is not None:
+                    if hasattr(engine, 'set_enhance'):
+                        engine.set_enhance(request.get('enhance') is True)
+                    send({'ok':True, 'enhanced': getattr(engine, 'restorer', None) is not None})
                 elif op == 'stop':
                     send({'ok':True})
                     break

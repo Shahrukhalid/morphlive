@@ -50,14 +50,10 @@ class FaceSwapEngine:
         self.G=self.G.to(self.device,self.dtype).eval()
         if self.device=='mps':
             self.G=self.G.to(memory_format=torch.channels_last)
-        self.restorer=None
-        if enhance or os.environ.get('MORPHLIVE_RESTORE')=='1':
-            from GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
-            self.restorer=GFPGANv1Clean(out_size=512,num_style_feat=512,channel_multiplier=2,
-                                      decoder_load_path=None,fix_decoder=False,num_mlp=8,
-                                      input_is_latent=True,different_w=True,narrow=1,sft_half=True)
-            self.restorer.load_state_dict(load_file(str(weights/'restorer.safetensors')),strict=True)
-            self.restorer=self.restorer.to(self.device,torch.float32).eval()
+        self.weights = weights
+        self.restorer = None
+        if enhance or os.environ.get('MORPHLIVE_RESTORE') == '1':
+            self._load_restorer()
         model_paths = [
             ROOT / 'apps/desktop/public/models/face_landmarker.task',
             ROOT / 'dist/models/face_landmarker.task',
@@ -65,44 +61,61 @@ class FaceSwapEngine:
             Path(__file__).resolve().parents[2] / 'dist/models/face_landmarker.task',
         ]
         model_file = next((p for p in model_paths if p.exists()), model_paths[0])
-        self.detector=mp.tasks.vision.FaceLandmarker.create_from_options(mp.tasks.vision.FaceLandmarkerOptions(
+        self.detector = mp.tasks.vision.FaceLandmarker.create_from_options(mp.tasks.vision.FaceLandmarkerOptions(
             base_options=mp.tasks.BaseOptions(model_asset_path=str(model_file)),
-            running_mode=mp.tasks.vision.RunningMode.IMAGE,num_faces=1))
+            running_mode=mp.tasks.vision.RunningMode.IMAGE, num_faces=1))
         if reference not in REFERENCE_IDS:
             raise ValueError('Unknown local reference')
-        source=reference_rgb(ROOT/'.runtime/references'/(reference+'.png'))
-        aligned=self.align(source,size=256)
+        source = reference_rgb(ROOT / '.runtime/references' / (reference + '.png'))
+        aligned = self.align(source, size=256)
         if aligned is None:
             raise ValueError('Reference needs one visible adult face')
         # Cache identity once. The large recognizer is not run per video frame.
-        recognizer=get_vit_model(str(weights/'recognizer.safetensors'),device=self.device)
-        self.identity_cache={};self.credits={}
-        attribution_file=CATALOG.parent/'actor-references.json'
-        attributions=json.loads(attribution_file.read_text()) if attribution_file.exists() else []
+        recognizer = get_vit_model(str(weights / 'recognizer.safetensors'), device=self.device)
+        self.identity_cache = {}; self.credits = {}
+        attribution_file = CATALOG.parent / 'actor-references.json'
+        attributions = json.loads(attribution_file.read_text()) if attribution_file.exists() else []
         with torch.inference_mode():
             for ident in REFERENCE_IDS:
-                file=ROOT/'.runtime/references'/(ident+'.png')
+                file = ROOT / '.runtime/references' / (ident + '.png')
                 if not file.exists():
                     continue
-                image=source if ident==reference else reference_rgb(file)
-                face=aligned if ident==reference else self.align(image,size=256)
+                image = source if ident == reference else reference_rgb(file)
+                face = aligned if ident == reference else self.align(image, size=256)
                 if face is None:
                     continue
-                tensor=self.tensor(face[0],dtype=torch.float32)
-                tensor=torch.nn.functional.interpolate(tensor,(112,112),mode='bilinear')
-                self.identity_cache[ident]=torch.nn.functional.normalize(recognizer(tensor)).to(self.dtype)
-                match=next((item for item in attributions if item['id']==ident),None)
-                if match and hashlib.sha256(file.read_bytes()).hexdigest()==match['sha256']:
-                    self.credits[ident]=match
+                tensor = self.tensor(face[0], dtype=torch.float32)
+                tensor = torch.nn.functional.interpolate(tensor, (112, 112), mode='bilinear')
+                self.identity_cache[ident] = torch.nn.functional.normalize(recognizer(tensor)).to(self.dtype)
+                match = next((item for item in attributions if item['id'] == ident), None)
+                if match and hashlib.sha256(file.read_bytes()).hexdigest() == match['sha256']:
+                    self.credits[ident] = match
         self.set_reference(reference)
         del recognizer
         with torch.inference_mode():
-            self.G(self.tensor(aligned[0]),self.identity)
-        if self.device=='mps':
+            self.G(self.tensor(aligned[0]), self.identity)
+        if self.device == 'mps':
             torch.mps.synchronize()
-        if self.device=='mps':
             torch.mps.empty_cache()
-        self.initial=None
+        self.initial = None
+
+    def _load_restorer(self):
+        if self.restorer is not None:
+            return
+        restorer_path = self.weights / 'restorer.safetensors'
+        if restorer_path.exists():
+            from GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
+            self.restorer = GFPGANv1Clean(out_size=512, num_style_feat=512, channel_multiplier=2,
+                                          decoder_load_path=None, fix_decoder=False, num_mlp=8,
+                                          input_is_latent=True, different_w=True, narrow=1, sft_half=True)
+            self.restorer.load_state_dict(load_file(str(restorer_path)), strict=True)
+            self.restorer = self.restorer.to(self.device, torch.float32).eval()
+
+    def set_enhance(self, enhance):
+        if enhance:
+            self._load_restorer()
+        else:
+            self.restorer = None
 
     def set_reference(self,reference):
         if reference not in self.identity_cache:

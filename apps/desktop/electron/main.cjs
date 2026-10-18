@@ -56,6 +56,7 @@ app.whenReady().then(() => {
     if(request.op==='frame'&&typeof request.jpeg==='string'&&request.jpeg.length<=1_400_000)return neural.request({op:'frame',jpeg:request.jpeg});
     if(request.op==='virtual'&&typeof request.enabled==='boolean')return neural.request({op:'virtual',enabled:request.enabled});
     if(request.op==='calibrate')return neural.request({op:'calibrate'});
+    if(request.op==='enhance'&&typeof request.enhance==='boolean')return neural.request({op:'enhance',enhance:request.enhance});
     if(request.op==='reference'&&reference)return neural.request({op:'reference',reference:reference.id});
     throw new Error('Invalid neural command');
   });
