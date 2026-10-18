@@ -38,12 +38,15 @@ def main():
                     if engine is not None:
                         raise ValueError('Engine already running')
                     widescreen = request.get('widescreen') is not False
-                    if request.get('backend')=='faceswap':
+                    backend=request.get('backend','faceswap')
+                    if backend=='faceswap':
                         from faceswap import FaceSwapEngine
-                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is not False)
-                    else:
+                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is True)
+                    elif backend=='portrait':
                         engine = PortraitEngine(reference, widescreen=widescreen)
-                    send({'ok': True, 'device': engine.wrapper.device})
+                    else:
+                        raise ValueError('Unknown neural backend')
+                    send({'ok': True, 'device': engine.wrapper.device, 'backend': backend})
                 elif op == 'frame' and engine is not None:
                     encoded = request.get('jpeg', '')
                     if not isinstance(encoded, str) or len(encoded) > 1_400_000:

@@ -143,7 +143,7 @@ class FaceSwapEngine:
     def process(self,rgb):
         start=time.perf_counter();aligned=self.align(rgb)
         if aligned is None:
-            return rgb,(time.perf_counter()-start)*1000,False
+            return np.zeros_like(rgb),(time.perf_counter()-start)*1000,False
         target,matrix,points=aligned
         with torch.inference_mode():
             generated,_=self.G(self.tensor(target),self.identity)
