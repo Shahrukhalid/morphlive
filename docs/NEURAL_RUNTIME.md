@@ -3,22 +3,23 @@
 This work is experimental. It does not yet meet the requested realistic,
 real-time face replacement and matched voice acceptance criteria.
 
-The default neural engine uses the BSD-licensed GhostV2 generator and MIT CVLFace
-identity model. It replaces the tracked face inside the incoming camera frame,
-retaining the room, body, and hair. MediaPipe provides alignment; source identity
-embeddings are cached once, so the recognizer is not run on every video frame.
-Installed identities can switch during capture. No InsightFace weights are used.
-Voice pairing uses the existing DSP; there is no neural voice conversion.
+MorphLive defaults to **Live webcam face replacement (`GhostV2`)**. It uses the
+BSD-licensed generator and MIT CVLFace identity model to replace the face in each
+incoming camera frame. The source photo supplies an identity embedding; the
+output scene comes from the live camera. Hair, body, clothing, and surroundings
+remain original. Detail restoration is optional and starts disabled for speed.
 
-The alternative MIT LivePortrait mode animates a square reference portrait. It
-is substantially slower and does not replace a face inside the original scene.
+**Photo animation (`LivePortrait`)** remains a separately selected experiment. It
+animates a still reference portrait using driving expressions. Its widescreen
+formatter adds blurred side panels, not a generated live body or background.
+Do not describe this mode as full-person transformation or established real-time
+operation. Earlier corrected measurements were about 1.31 FPS on the tested Mac.
 
-## Free local Mac constraint
+## Free local constraint
 
-The runtime stays free and local on this Mac. No paid inference API, cloud
-processing, subscription, or additional computer is required by this prototype.
-Face restoration starts disabled; installing its weights does not silently
-trade motion speed for additional detail. It remains an explicit option.
+The runtime stays free and local on your machine. No paid inference API, cloud
+processing, subscription, or external computer is required. Models and reference
+photos stay out of Git.
 
 ## Latest local optimization
 

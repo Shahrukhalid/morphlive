@@ -4,19 +4,12 @@ Version 0.1.0 is an experimental preview, not a completed production application
 
 ## Implemented and checked
 
-- Optional real GhostV2 face replacement and cached source switching: functional
-  native probe PASS for all 12 installed references and lost-face blackout.
-- Zoom Workplace 7.2.2 preview received transformed live frames via OBS Virtual
-  Camera. Native Escape stop yielded the inactive OBS slate. This is a preview
-  result, not a completed meeting/audio acceptance test.
-- Visual realism and smooth movement acceptance: FAIL. The current model still
-  exposes seams and facial-hair remnants; it is not indistinguishable. See
-  NEURAL_RUNTIME.md for separate synthetic-input and live timing evidence.
+- LivePortrait is optional photo animation with widescreen side-panel formatting; it is not live webcam face replacement or a verified full-body transformation.
+- Optional GhostV2 face replacement and cached source switching: functional native probe PASS for all 18 installed references and lost-face blackout.
+- Zoom Workplace 7.2.2 preview received transformed live frames via OBS Virtual Camera. Native Escape stop yielded the inactive OBS slate. This is a preview result, not a completed meeting/audio acceptance test.
+- Visual realism and natural motion acceptance remain unfulfilled. GhostV2 is genuine live-frame face replacement, but seams and facial-hair remnants can remain. A restoration model and widescreen output do not establish convincing visual quality.
 
-- Free local Mac optimization: channels-last MPS generator and face-region
-  compositing implemented. Latest short 720p fictional-input comparison measured
-  19.32 FPS versus 15.65 FPS before the change, excluding transport and camera.
-  Three numerical compositor checks PASS; live quality remains unaccepted.
+- Free local optimization: channels-last MPS generator and face-region compositing implemented. Latest short 720p fictional-input comparison measured 19.32 FPS versus 15.65 FPS before the change, excluding transport and camera. Three numerical compositor checks PASS.
 - Strict TypeScript production build: PASS.
 - Seventeen automated audio/native-bridge/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.
