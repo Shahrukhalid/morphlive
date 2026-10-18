@@ -3,11 +3,17 @@
 This work is experimental. It does not yet meet the requested realistic,
 real-time face replacement and matched voice acceptance criteria.
 
-MorphLive provides two local neural transformation modes:
+MorphLive defaults to **Live webcam face replacement (`GhostV2`)**. It uses the
+BSD-licensed generator and MIT CVLFace identity model to replace the face in each
+incoming camera frame. The source photo supplies an identity embedding; the
+output scene comes from the live camera. Hair, body, clothing, and surroundings
+remain original. Detail restoration is optional and starts disabled for speed.
 
-1. **Full Persona AI (`LivePortrait`)**: An MIT-licensed neural portrait pipeline that animates the entire persona—head, hair, skin, shoulders, clothing, and background—driven in real time by your physical camera's motion, eye blinks, facial expressions, and speech. Formatted natively into 16:9 widescreen (1280×720) with cinematic depth-of-field background bokeh so video calls (Zoom, Meet, Teams, browser calls) receive a broadcast-ready widescreen feed without black bars or distortion. This mode completely prevents beard or room bleed-through.
-
-2. **Webcam Face Swap (`GhostV2`)**: BSD-licensed GhostV2 generator and MIT CVLFace identity model. It swaps facial features into your live webcam feed while keeping your body, hair, and bedroom background. MediaPipe provides alignment; source identity embeddings are cached once. Features optional GFPGAN 512×512 face detail restoration and organic boundary illumination blending.
+**Photo animation (`LivePortrait`)** remains a separately selected experiment. It
+animates a still reference portrait using driving expressions. Its widescreen
+formatter adds blurred side panels, not a generated live body or background.
+Do not describe this mode as full-person transformation or established real-time
+operation. Earlier corrected measurements were about 1.31 FPS on the tested Mac.
 
 ## Free local constraint
 
