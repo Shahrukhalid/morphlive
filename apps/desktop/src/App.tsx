@@ -34,7 +34,7 @@ export function App() {
   useEffect(() => {
     void refresh(); navigator.mediaDevices.addEventListener('devicechange', refresh);
     channel.current = new BroadcastChannel('morphlive-output');
-    channel.current.onmessage = event => { if(event.data.type === 'ack') outputPending.current=false; };
+    channel.current.onmessage = event => { if(event.data.type === 'ack' || event.data.type === 'ready') outputPending.current=false; if(event.data.type === 'emergency') emergency(); };
     return () => { stopCamera(); stopAudio(); channel.current?.close(); projector.current?.close(); navigator.mediaDevices.removeEventListener('devicechange', refresh); };
   }, []);
   useEffect(() => { try { const serialized=JSON.stringify(settings); localStorage.setItem('morphlive.settings.v1', serialized); void window.morphPreferences?.save(serialized).then(saved=>{if(!saved)setError('Preferences could not be saved to disk.');}); } catch { setError('Settings could not be saved. Check available disk space.'); } }, [settings]);
@@ -103,7 +103,7 @@ export function App() {
         }
         if (projector.current && !projector.current.closed && now-lastOutput>65 && !outputBusy && !outputPending.current) {
           outputBusy=true; outputPending.current=true; lastOutput=now;
-          void createImageBitmap(target).then(bitmap => { channel.current?.postMessage({ type:'frame', bitmap }); bitmap.close(); }).catch(() => { outputPending.current=false; setError('Output window stopped receiving frames. Reopen it.'); }).finally(() => { outputBusy=false; });
+          void createImageBitmap(target).then(bitmap => { if(generation===captureGeneration.current) channel.current?.postMessage({ type:'frame', bitmap }); else outputPending.current=false; bitmap.close(); }).catch(() => { outputPending.current=false; setError('Output window stopped receiving frames. Reopen it.'); }).finally(() => { outputBusy=false; });
         }
         if (now-lastStats>1000) {
           const measuredFps=count*1000/(now-lastStats), measuredProcess=total/Math.max(count,1), measuredDropped=dropped;
@@ -182,8 +182,11 @@ export function Projector() {
     const clear=()=>{const ctx=canvas.current?.getContext('2d');if(!ctx)return;ctx.fillStyle='#090b10';ctx.fillRect(0,0,ctx.canvas.width,ctx.canvas.height);ctx.fillStyle='#a4adbe';ctx.font='20px sans-serif';ctx.textAlign='center';ctx.fillText('MorphLive · Output stopped',ctx.canvas.width/2,ctx.canvas.height/2);};
     clear();
     channel.onmessage=event=>{ if(event.data.type==='stop'){clear();return;} const bitmap=event.data.bitmap as ImageBitmap; if(!bitmap)return;last=performance.now(); const target=canvas.current!;if(target.width!==bitmap.width||target.height!==bitmap.height){target.width=bitmap.width;target.height=bitmap.height;}target.getContext('2d')!.drawImage(bitmap,0,0);bitmap.close(); channel.postMessage({type:'ack'}); };
+    channel.postMessage({type:'ready'});
+    const stopKey=(event: KeyboardEvent)=>{if(event.key==='Escape')channel.postMessage({type:'emergency'});};
+    window.addEventListener('keydown',stopKey);
     const timer=setInterval(()=>{if(performance.now()-last>1200)clear();},500);
-    return()=>{channel.close();clearInterval(timer);};
+    return()=>{window.removeEventListener('keydown',stopKey);channel.close();clearInterval(timer);};
   },[]);
   return <canvas className="projector" ref={canvas} width={1280} height={720}/>;
 }
