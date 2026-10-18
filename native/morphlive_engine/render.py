@@ -58,7 +58,7 @@ def render(config):
         with tempfile.TemporaryDirectory(prefix='.morphlive-render-', dir=target.parent) as folder:
             temporary = Path(folder)/'clip.mp4'
             decoder = sp.Popen([ffmpeg, '-v', 'error', '-nostdin', '-protocol_whitelist', 'file,pipe', '-i', str(source), '-an', '-vf', f'fps={fps},scale={width}:{height}:flags=lanczos,setsar=1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1'], stdout=sp.PIPE, stderr=sp.DEVNULL)
-            encoder = sp.Popen([ffmpeg, '-v', 'error', '-nostdin', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{width}x{height}', '-r', str(fps), '-i', 'pipe:0', '-protocol_whitelist', 'file,pipe', '-i', str(source), '-map', '0:v:0', '-map', '1:a:0?', '-map_metadata', '-1', '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', str(temporary)], stdin=sp.PIPE, stderr=sp.DEVNULL)
+            encoder = sp.Popen([ffmpeg, '-v', 'error', '-nostdin', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{width}x{height}', '-r', str(fps), '-i', 'pipe:0', '-protocol_whitelist', 'file,pipe', '-i', str(source), '-map', '0:v:0', '-map', '1:a:0?', '-map_metadata', '-1', '-map_metadata:s', '-1', '-map_chapters', '-1', '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', str(temporary)], stdin=sp.PIPE, stderr=sp.DEVNULL)
             import numpy as np
             count = tracked = 0
             size = width*height*3
