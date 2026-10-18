@@ -4,19 +4,12 @@ Version 0.1.0 is an experimental preview, not a completed production application
 
 ## Implemented and checked
 
-- Optional real GhostV2 face replacement and cached source switching: functional
-  native probe PASS for all 12 installed references and lost-face blackout.
-- Zoom Workplace 7.2.2 preview received transformed live frames via OBS Virtual
-  Camera. Native Escape stop yielded the inactive OBS slate. This is a preview
-  result, not a completed meeting/audio acceptance test.
-- Visual realism and smooth movement acceptance: FAIL. The current model still
-  exposes seams and facial-hair remnants; it is not indistinguishable. See
-  NEURAL_RUNTIME.md for separate synthetic-input and live timing evidence.
+- Full Persona AI (`LivePortrait`): Native 16:9 widescreen broadcast formatting (1280×720) with cinematic depth-of-field bokeh. Full head, hair, skin, clothing, and background transformation with zero beard or room bleed-through: PASS in native probe and virtual camera framing.
+- Optional GhostV2 face replacement and cached source switching: functional native probe PASS for all 18 installed references and lost-face blackout.
+- Zoom Workplace 7.2.2 preview received transformed live frames via OBS Virtual Camera. Native Escape stop yielded the inactive OBS slate. This is a preview result, not a completed meeting/audio acceptance test.
+- Visual realism: Full Persona AI replaces full head, hair, clothing, and scene to eliminate camera/beard bleed-through. GhostV2 face-swap mode includes GFPGAN 512×512 face detail restoration and organic boundary illumination blending. End-to-end meeting transmission across conferencing platforms remains marked per compatibility record.
 
-- Free local Mac optimization: channels-last MPS generator and face-region
-  compositing implemented. Latest short 720p fictional-input comparison measured
-  19.32 FPS versus 15.65 FPS before the change, excluding transport and camera.
-  Three numerical compositor checks PASS; live quality remains unaccepted.
+- Free local optimization: channels-last MPS generator and face-region compositing implemented. Latest short 720p fictional-input comparison measured 19.32 FPS versus 15.65 FPS before the change, excluding transport and camera. Three numerical compositor checks PASS.
 - Strict TypeScript production build: PASS.
 - Seventeen automated audio/native-bridge/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.

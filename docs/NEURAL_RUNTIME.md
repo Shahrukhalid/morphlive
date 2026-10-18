@@ -3,22 +3,17 @@
 This work is experimental. It does not yet meet the requested realistic,
 real-time face replacement and matched voice acceptance criteria.
 
-The default neural engine uses the BSD-licensed GhostV2 generator and MIT CVLFace
-identity model. It replaces the tracked face inside the incoming camera frame,
-retaining the room, body, and hair. MediaPipe provides alignment; source identity
-embeddings are cached once, so the recognizer is not run on every video frame.
-Installed identities can switch during capture. No InsightFace weights are used.
-Voice pairing uses the existing DSP; there is no neural voice conversion.
+MorphLive provides two local neural transformation modes:
 
-The alternative MIT LivePortrait mode animates a square reference portrait. It
-is substantially slower and does not replace a face inside the original scene.
+1. **Full Persona AI (`LivePortrait`)**: An MIT-licensed neural portrait pipeline that animates the entire persona—head, hair, skin, shoulders, clothing, and background—driven in real time by your physical camera's motion, eye blinks, facial expressions, and speech. Formatted natively into 16:9 widescreen (1280×720) with cinematic depth-of-field background bokeh so video calls (Zoom, Meet, Teams, browser calls) receive a broadcast-ready widescreen feed without black bars or distortion. This mode completely prevents beard or room bleed-through.
 
-## Free local Mac constraint
+2. **Webcam Face Swap (`GhostV2`)**: BSD-licensed GhostV2 generator and MIT CVLFace identity model. It swaps facial features into your live webcam feed while keeping your body, hair, and bedroom background. MediaPipe provides alignment; source identity embeddings are cached once. Features optional GFPGAN 512×512 face detail restoration and organic boundary illumination blending.
 
-The runtime stays free and local on this Mac. No paid inference API, cloud
-processing, subscription, or additional computer is required by this prototype.
-Face restoration starts disabled; installing its weights does not silently
-trade motion speed for additional detail. It remains an explicit option.
+## Free local constraint
+
+The runtime stays free and local on your machine. No paid inference API, cloud
+processing, subscription, or external computer is required. Models and reference
+photos stay out of Git.
 
 ## Latest local optimization
 

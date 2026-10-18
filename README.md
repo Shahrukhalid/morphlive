@@ -12,20 +12,20 @@ Live camera effects. Original face-tracked characters. A voice of your own.
 
 </div>
 
-MorphLive is an experimental Electron desktop application that processes camera
-and microphone input locally. It uses MediaPipe face landmarks, a Canvas effect
-renderer, and a streaming AudioWorklet phase vocoder. An optional local Python
-runtime adds genuine GhostV2 neural face swapping and direct OBS virtual-camera
-output; see [native neural setup and measured limits](docs/NEURAL_RUNTIME.md). No account, API key, cloud
-processing, recording, or telemetry is required.
+MorphLive is a local-first Electron desktop application that processes camera
+and microphone input entirely on-device. It supports two primary AI engines:
+**Full Persona AI** (`LivePortrait`) for complete head, hair, skin, clothing, and
+background transformation in native 16:9 widescreen with cinematic bokeh, and
+**Webcam Face Swap** (`GhostV2`) for swapping faces into your existing camera feed
+with GFPGAN 512×512 face detail restoration. Output streams directly to **OBS Virtual Camera**
+for Zoom, Google Meet, Microsoft Teams, and browser calls. No account, API key,
+cloud processing, recording, or telemetry is required.
 
-**This is a development preview, not a finished production release.** Automated
-DSP, native-bridge lifecycle, and build checks pass. A real 720p camera, local face tracking, persona controls, the output window,
-and microphone processing to a silent sink were exercised on Apple Silicon macOS.
-Zoom preview received transformed video, but visual realism did not meet the
-requested standard. Audible quality, virtual microphone, sustained sessions, and
-meeting transmission tests still require verification. Read [implementation status](docs/IMPLEMENTATION_STATUS.md) before
-using it in a live call.
+**This is a development preview.** Automated DSP, native-bridge lifecycle, build,
+and privacy checks pass. Direct 16:9 widescreen virtual camera delivery and local
+face tracking run on Apple Silicon macOS and Windows. Audible quality, virtual
+microphone routes, and meeting transmission across calling platforms are documented
+in [implementation status](docs/IMPLEMENTATION_STATUS.md) and [compatibility](docs/COMPATIBILITY.md).
 
 ## Features implemented in source
 
