@@ -37,11 +37,11 @@ def similarity(source, destination):
 
 
 class FaceSwapEngine:
-    def __init__(self, reference='fictional-female', enhance=False):
+    def __init__(self, reference='fictional-female', enhance=False, quality=False):
         from Ghost.AEI_Net import AEI_Net
         from CVLFace import get_vit_model
         self.device='mps' if torch.backends.mps.is_available() else 'cuda' if torch.cuda.is_available() else 'cpu'
-        self.dtype=torch.float16 if self.device!='cpu' else torch.float32
+        self.dtype=torch.float16 if self.device!='cpu' and not quality else torch.float32
         self.size=256
         self.G=AEI_Net('unet',num_blocks=2,c_id=512,align_corners=True)
         weights=ROOT/'.runtime/models/ghostv2'
