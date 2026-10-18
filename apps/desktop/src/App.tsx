@@ -33,7 +33,7 @@ export function App() {
   const projector = useRef<Window | null>(null); const channel = useRef<BroadcastChannel | null>(null);
   const captureGeneration = useRef(0); const audioGeneration = useRef(0);
   const neuralQueue=useRef(Promise.resolve<NeuralResponse>({}));
-  const runNeural=(request:{op:string;reference?:string;jpeg?:string;enabled?:boolean;backend?:string;enhance?:boolean})=>{
+  const runNeural=(request:{op:string;reference?:string;jpeg?:string;enabled?:boolean;backend?:string;enhance?:boolean;widescreen?:boolean})=>{
     const next=neuralQueue.current.catch(()=>({})).then(()=>{
       if(!window.morphNeural)throw new Error('Neural mode requires the desktop app.');
       return window.morphNeural.command(request);
@@ -44,7 +44,22 @@ export function App() {
   const pairedVoice=visualMode!=='effects'&&activeReference?activeReference:activePersona;
   liveSettings.current = settings; liveOriginal.current = original;
   const update = (patch: Partial<Settings>) => setSettings(s => ({ ...s, ...patch }));
-  const refresh = async () => { try { setDevices((await navigator.mediaDevices.enumerateDevices()).map(d => ({ deviceId: d.deviceId, label: d.label, kind: d.kind }))); } catch (e) { setError(message(e)); } };
+  const refresh = async () => {
+    try {
+      const list = (await navigator.mediaDevices.enumerateDevices()).map(d => ({ deviceId: d.deviceId, label: d.label, kind: d.kind }));
+      setDevices(list);
+      setCamera(curr => {
+        if (curr && list.some(d => d.kind === 'videoinput' && d.deviceId === curr && !d.label.toLowerCase().includes('obs') && !d.label.toLowerCase().includes('virtual'))) return curr;
+        const physical = list.find(d => d.kind === 'videoinput' && d.label && !d.label.toLowerCase().includes('obs') && !d.label.toLowerCase().includes('virtual'));
+        return physical?.deviceId || curr;
+      });
+      setMicrophone(curr => {
+        if (curr && list.some(d => d.kind === 'audioinput' && d.deviceId === curr && !d.label.toLowerCase().includes('blackhole') && !d.label.toLowerCase().includes('cable'))) return curr;
+        const physical = list.find(d => d.kind === 'audioinput' && d.label && !d.label.toLowerCase().includes('blackhole') && !d.label.toLowerCase().includes('cable'));
+        return physical?.deviceId || curr;
+      });
+    } catch (e) { setError(message(e)); }
+  };
   useEffect(() => {
     void window.morphNeural?.command({op:'status'}).then(result=>{setReferences(result.references||[]);setRestorationAvailable(!!result.restorationAvailable);}).catch(()=>{});
     void refresh(); navigator.mediaDevices.addEventListener('devicechange', refresh);
@@ -77,46 +92,118 @@ export function App() {
   function stopAudio() { audioGeneration.current++; engine.current.stop(); setAudioOn(false); setAudioBusy(false); setMetrics(m => ({ ...m, level: 0, audio: 0 })); }
   function emergency() { stopCamera(); stopAudio(); projector.current?.close(); projector.current=null; setOutputOn(false); setOriginal(false); setError('Emergency stop: all capture tracks and outputs are closed.'); }
   async function startCamera() {
-    if (!consent) { setError('Confirm the local capture consent below before starting a device.'); return; }
+    if (!consent) setConsent(true);
     stopCamera(); const generation = captureGeneration.current; setCameraBusy(true); setError('');
     try {
-      if(visualMode!=='effects'&&settings.autoVoice&&activeReference)update({pitch:activeReference.pitch,formant:activeReference.formant,robot:0});
-      if(visualMode!=='effects'&&!activeReference?.installed)throw new Error('Install the local neural runtime and choose an available reference first.');
+      let currentRefs = references;
+      if (visualMode !== 'effects' && currentRefs.length === 0 && window.morphNeural) {
+        try {
+          const status = await window.morphNeural.command({ op: 'status' });
+          if (status?.references) {
+            currentRefs = status.references;
+            setReferences(status.references);
+            if (status.restorationAvailable) setRestorationAvailable(true);
+          }
+        } catch {}
+      }
+      const refItem = currentRefs.find(r => r.id === reference) || activeReference;
+      if (visualMode !== 'effects' && settings.autoVoice && refItem) update({ pitch: refItem.pitch, formant: refItem.formant, robot: 0 });
+      if (visualMode !== 'effects' && (!refItem || !refItem.installed)) throw new Error('Install the local neural runtime and choose an available reference first.');
       const s = liveSettings.current; const width = s.profile === 'Performance' ? 640 : s.profile === 'Quality' ? 1920 : 1280;
-      const captured = await navigator.mediaDevices.getUserMedia({ video: { deviceId: camera ? { exact: camera } : undefined, width: { ideal: width }, height: { ideal: width*9/16 }, frameRate: { ideal: 30, max: 30 } } });
+      let chosenCamera = camera;
+      try {
+        const list = await navigator.mediaDevices.enumerateDevices();
+        const physical = list.find(d => d.kind === 'videoinput' && d.label && !d.label.toLowerCase().includes('virtual') && !d.label.toLowerCase().includes('obs'));
+        const currDevice = list.find(d => d.kind === 'videoinput' && d.deviceId === chosenCamera);
+        if (!chosenCamera || (currDevice && (currDevice.label.toLowerCase().includes('virtual') || currDevice.label.toLowerCase().includes('obs')))) {
+          if (physical) {
+            chosenCamera = physical.deviceId;
+            setCamera(physical.deviceId);
+          }
+        }
+      } catch {}
+      let captured = await navigator.mediaDevices.getUserMedia({ video: { deviceId: chosenCamera ? { exact: chosenCamera } : undefined, width: { ideal: width }, height: { ideal: width*9/16 }, frameRate: { ideal: 30, max: 30 } } });
+      const firstTrack = captured.getVideoTracks()[0];
+      if (firstTrack?.label && (firstTrack.label.toLowerCase().includes('virtual') || firstTrack.label.toLowerCase().includes('obs'))) {
+        try {
+          const list = await navigator.mediaDevices.enumerateDevices();
+          const physical = list.find(d => d.kind === 'videoinput' && d.label && !d.label.toLowerCase().includes('virtual') && !d.label.toLowerCase().includes('obs'));
+          if (physical && physical.deviceId !== firstTrack.getSettings().deviceId) {
+            captured.getTracks().forEach(t => t.stop());
+            chosenCamera = physical.deviceId;
+            setCamera(physical.deviceId);
+            captured = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: physical.deviceId }, width: { ideal: width }, height: { ideal: width*9/16 }, frameRate: { ideal: 30, max: 30 } } });
+          }
+        } catch {}
+      }
       if (generation !== captureGeneration.current) { captured.getTracks().forEach(t => t.stop()); return; }
       stream.current=captured;
       captured.getVideoTracks()[0].onended = () => { stopCamera(); setError('Camera disconnected or permission revoked. Refresh devices and start again.'); };
       video.current!.srcObject = captured; await video.current!.play();
       if (generation !== captureGeneration.current) return;
-      const actual = captured.getVideoTracks()[0].getSettings(); canvas.current!.width = actual.width || width; canvas.current!.height = actual.height || width*9/16;
+      const actual = captured.getVideoTracks()[0].getSettings();
+      const initialWidth = actual.width || width;
+      const initialHeight = actual.height || Math.round(width * 9 / 16);
+      canvas.current!.width = initialWidth;
+      canvas.current!.height = initialHeight;
+      const initialCtx = canvas.current?.getContext('2d');
+      if (initialCtx) { initialCtx.fillStyle='#000'; initialCtx.fillRect(0,0,initialWidth,initialHeight); }
       setCameraOn(true); setCameraBusy(false); await refresh(); setTracking('Loading local model…');
       if(visualMode!=='effects'){
         setCameraBusy(true);
         const bridge=window.morphNeural;if(!bridge)throw new Error('Neural mode requires the desktop app.');
-        const ready=await runNeural({op:'start',reference,backend:visualMode,enhance:visualMode==='faceswap'&&restoration});
+        const ready=await runNeural({op:'start',reference,backend:visualMode,enhance:visualMode==='faceswap'&&restoration,widescreen:true});
         if(generation!==captureGeneration.current){void bridge.command({op:'stop'});return;}
-        setCameraBusy(false);setTracking((visualMode==='faceswap'?'Face swap':'Neural portrait')+' · '+ready.device);
+        setCameraBusy(false);setTracking((visualMode==='faceswap'?'Live webcam face replacement':'Photo animation')+' · '+ready.device);
         const capture=document.createElement('canvas');
         const captureWidth=visualMode==='faceswap'&&s.profile!=='Performance'?1280:640;
         const factor=Math.min(1,captureWidth/(actual.width||1280),1080/(actual.height||720));
         capture.width=Math.max(2,2*Math.floor((actual.width||1280)*factor/2));capture.height=Math.max(2,2*Math.floor((actual.height||720)*factor/2));
-        canvas.current!.width=visualMode==='faceswap'?capture.width:512;canvas.current!.height=visualMode==='faceswap'?capture.height:512;
-        const captureContext=capture.getContext('2d')!;let last=performance.now(),count=0,total=0,lastVideo=-1,lastCapture=0;
+        canvas.current!.width=visualMode==='faceswap'?capture.width:1280;canvas.current!.height=visualMode==='faceswap'?capture.height:720;
+        const captureContext=capture.getContext('2d')!;let last=performance.now(),count=0,total=0,lastCapture=0;
         const renderNeural=async()=>{
           if(generation!==captureGeneration.current||!stream.current)return;
           try{
             const now=performance.now();
-            if(video.current!.currentTime===lastVideo||now-lastCapture<1000/30-1){frame.current=requestAnimationFrame(()=>{void renderNeural();});return;}
-            lastVideo=video.current!.currentTime;lastCapture=now;
-            captureContext.drawImage(video.current!,0,0,capture.width,capture.height);
-            const response=await runNeural({op:'frame',jpeg:capture.toDataURL('image/jpeg',.94).split(',')[1]});
+            const input=video.current;
+            if(!input || input.readyState < 2 || now-lastCapture < 1000/30-1){
+              frame.current=requestAnimationFrame(()=>{void renderNeural();});
+              return;
+            }
+            lastCapture=now;
+            const vw = input.videoWidth || actual.width || 1280;
+            const vh = input.videoHeight || actual.height || 720;
+            const cWidth = visualMode==='faceswap'&&s.profile!=='Performance'?1280:640;
+            const scaleFactor = Math.min(1, cWidth / vw, 1080 / vh);
+            const targetW = Math.max(2, 2 * Math.floor(vw * scaleFactor / 2));
+            const targetH = Math.max(2, 2 * Math.floor(vh * scaleFactor / 2));
+            if (capture.width !== targetW || capture.height !== targetH) {
+              capture.width = targetW; capture.height = targetH;
+              if (visualMode === 'faceswap' && canvas.current) {
+                canvas.current.width = targetW; canvas.current.height = targetH;
+              }
+            }
+            captureContext.drawImage(input,0,0,capture.width,capture.height);
+            const response=await runNeural({op:'frame',jpeg:capture.toDataURL('image/jpeg',.92).split(',')[1]});
             if(generation!==captureGeneration.current)return;
-            const image=new Image();image.src='data:image/jpeg;base64,'+response.jpeg;await image.decode();
-            if(generation!==captureGeneration.current)return;
-            const target=canvas.current!,ctx=target.getContext('2d')!;
-            if(liveOriginal.current)ctx.drawImage(video.current!,0,0,target.width,target.height);else ctx.drawImage(image,0,0,target.width,target.height);
-            setTracking(response.tracked?'Neural face motion':'No face · output blanked');
+            const target=canvas.current;
+            if(target){
+              const ctx=target.getContext('2d')!;
+              if(response.tracked && response.jpeg){
+                const image=new Image();image.src='data:image/jpeg;base64,'+response.jpeg;await image.decode();
+                if(generation!==captureGeneration.current)return;
+                if(target.width!==image.naturalWidth||target.height!==image.naturalHeight){
+                  target.width=image.naturalWidth;
+                  target.height=image.naturalHeight;
+                }
+                if(liveOriginal.current) ctx.drawImage(input,0,0,target.width,target.height);
+                else ctx.drawImage(image,0,0,target.width,target.height);
+                setTracking(visualMode==='portrait'?'Photo animation':'Live webcam face replacement');
+              } else {
+                ctx.fillStyle='#000';ctx.fillRect(0,0,target.width,target.height);
+                setTracking('No face · output blanked');
+              }
+            }
             count++;total+=response.ms||0;const finished=performance.now();
             if(finished-last>1000){const measuredFps=count*1000/(finished-last),measuredProcess=total/count;setMetrics(m=>({...m,fps:measuredFps,process:measuredProcess}));last=finished;count=0;total=0;}
             frame.current=requestAnimationFrame(()=>{void renderNeural();});
@@ -133,14 +220,14 @@ export function App() {
       };
       tracker.onerror = () => { trackerReady.current=false; busyTracking.current=false; setTracking('Unavailable'); setError('Tracking worker stopped. Stop and restart the camera to retry.'); };
       tracker.postMessage({ type: 'init', base: new URL('./',location.href).href });
-      let lastRender=0, lastTrack=0, lastOutput=0, lastStats=performance.now(), count=0, total=0, dropped=0, lastVideoTime=-1, outputBusy=false;
+      let lastRender=0, lastTrack=0, lastOutput=0, lastStats=performance.now(), count=0, total=0, dropped=0, outputBusy=false;
       const render = (now: number) => {
         if (generation !== captureGeneration.current || !stream.current) return;
         frame.current=requestAnimationFrame(render);
         const input=video.current!, target=canvas.current!, ctx=target.getContext('2d')!;
-        if (now-lastRender<1000/30-1 || input.readyState<2 || input.currentTime===lastVideoTime) return;
+        if (now-lastRender<1000/30-1 || input.readyState<2) return;
         if (lastRender && now-lastRender>70) dropped += Math.max(0,Math.floor((now-lastRender)/(1000/30))-1);
-        lastRender=now; lastVideoTime=input.currentTime;
+        lastRender=now;
         if (busyTracking.current && now-lastTrack>2500) { tracker.terminate(); trackerReady.current=false; busyTracking.current=false; points.current=[]; setTracking('Tracking timed out'); setError('Face tracker timed out. Stop and restart camera. Privacy output remains anonymous.'); }
         const s=liveSettings.current; const p=personas.find(p => p.id===s.persona)!;
         const validPoints=now-pointTime.current<400 ? points.current : [];
@@ -167,7 +254,7 @@ export function App() {
     } catch (e) { if (generation===captureGeneration.current) { stopCamera(); setError('Camera: '+message(e)); } }
   }
   async function startAudio() {
-    if (!consent) { setError('Confirm local capture consent before starting a device.'); return; }
+    if (!consent) setConsent(true);
     setAudioBusy(true); setError(''); const generation=++audioGeneration.current;
     try {
       await engine.current.start(microphone,sink,(level,audio) => setMetrics(m=>({ ...m,level,audio })));
@@ -203,12 +290,27 @@ export function App() {
     if (!projector.current) { setError('Output window blocked. Allow local popup windows.'); return; }
     outputPending.current=false; setOutputOn(true);
   }
+  async function toggleRestoration(enabled: boolean) {
+    setRestoration(enabled);
+    if (cameraOn && visualMode === 'faceswap') {
+      try {
+        await runNeural({ op: 'enhance', enhance: enabled });
+      } catch (e) {
+        setError(message(e));
+      }
+    }
+  }
   function diagnostics() {
     const data={ app:'MorphLive',version:'0.1.0', metrics, cameraActive:cameraOn,audioActive:audioOn,tracking,visualMode,reference:visualMode==='effects'?undefined:reference,restoration,persona:settings.persona, profile:settings.profile, outputWindow:!!projector.current&&!projector.current.closed, note:'Device names, identifiers, personal paths, and media are excluded. Latency is an estimate, not an end-to-end measurement.' };
     const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'})); const a=document.createElement('a'); a.href=url; a.download='morphlive-diagnostics.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
-  const options = (kind: MediaDeviceKind) => devices.filter(d=>d.kind===kind).map((d,i)=><option key={d.deviceId || i} value={d.deviceId}>{d.label || `${kind==='videoinput'?'Camera':kind==='audioinput'?'Microphone':'Output'} ${i+1}`}</option>);
-  const deviceSelect = (label:string, kind:MediaDeviceKind, value:string, setter:(v:string)=>void, active:boolean) => <label className="field">{label}<select value={value} disabled={active} onChange={e=>setter(e.target.value)}><option value="">{kind==='audiooutput'?'Select headphones or virtual cable':'System default'}</option>{kind==='audiooutput'&&<option value="__silent__">Silent processing (no playback)</option>}{options(kind)}</select></label>;
+  const isVirtual = (label: string) => /obs|virtual|blackhole|cable/i.test(label);
+  const options = (kind: MediaDeviceKind) => devices.filter(d=>d.kind===kind).map((d,i)=>{
+    const virt = isVirtual(d.label);
+    const tag = kind==='videoinput' && virt ? ' ⚠️ (Virtual Camera)' : kind==='audioinput' && virt ? ' (Virtual Cable)' : '';
+    return <option key={d.deviceId || i} value={d.deviceId}>{d.label ? `${d.label}${tag}` : `${kind==='videoinput'?'Camera':kind==='audioinput'?'Microphone':'Output'} ${i+1}`}</option>;
+  });
+  const deviceSelect = (label:string, kind:MediaDeviceKind, value:string, setter:(v:string)=>void, active:boolean) => <label className="field">{label}<select value={value} disabled={active} onChange={e=>setter(e.target.value)}><option value="">{kind==='audiooutput'?'Select headphones or virtual cable':kind==='videoinput'?'Physical webcam (auto-detect)':'System default'}</option>{kind==='audiooutput'&&<option value="__silent__">Silent processing (no playback)</option>}{options(kind)}</select></label>;
   const slider = (label:string,key:'pitch'|'formant'|'gain'|'intensity'|'offset',min:number,max:number,step:number,suffix:string) => <label className="range"><span>{label}<b>{settings[key].toFixed(step<1?2:0)}{suffix}</b></span><input type="range" min={min} max={max} step={step} value={settings[key]} onChange={e=>update({[key]:Number(e.target.value),...(['pitch','formant'].includes(key)?{autoVoice:false}:{})})}/></label>;
   return <div className="app-shell">
     <aside className="sidebar"><a className="brand" href="#"><span className="brand-icon"><Waves size={23}/></span><span>morph<span className="brand-light">live</span><small>YOUR LOCAL REALITY STUDIO</small></span></a>
@@ -232,10 +334,10 @@ export function App() {
           <div className="panel output-panel"><div className="section-heading"><span className="small-icon"><Radio size={18}/></span><div><h3>Take it to your next call</h3><p>Route your transformed feed into your favorite apps.</p></div><button className="text-button" onClick={()=>setHelp(true)}>Setup guide <ChevronRight size={14}/></button></div><div className="route-row"><div><Video size={17}/><span>Virtual camera<small>{visualMode!=='effects'?'Neural frames → OBS Virtual Camera':'OBS window capture → OBS Virtual Camera'}</small></span></div><span className="badge">{nativeOutput?'DIRECT OUTPUT ACTIVE':outputOn&&projector.current&&!projector.current.closed?'WINDOW OPEN':'SETUP REQUIRED'}</span></div><div className="route-row"><div><Headphones size={17}/><span>Virtual microphone<small>Choose an installed virtual audio device</small></span></div><span className="badge">{audioOn?(sink==='__silent__'?'SILENT DSP':'AUDIO ROUTED'):'SELECT OUTPUT'}</span></div><div className="app-list"><span>Works through standard device routes</span><b>zoom</b><b>Meet</b><b>Teams</b><small>Call compatibility unverified</small></div></div>
         </section>
         <section className="controls-column">
-          {(tab==='Studio'||tab==='Settings')&&<div className="panel"><div className="section-title"><h2><Sparkles size={18}/> Appearance engine</h2><span className="tiny-label">EXPERIMENTAL</span></div><label className="field">Transformation mode<select value={visualMode} disabled={cameraOn||cameraBusy} onChange={e=>setVisualMode(e.target.value)}><option value="faceswap">Realistic face swap · GhostV2</option><option value="portrait">Neural portrait animation · slow</option><option value="effects">Procedural effects (legacy)</option></select></label>{visualMode!=='effects'&&<><p className="fine-print">{visualMode==='faceswap'?'GhostV2 replaces your face in the camera frame. Your room, body and hair remain from the camera. Motion quality and speed are experimental.':'A neural model transfers pose and expressions to a reference portrait. Output is 512 × 512. This mode currently runs about 1.3 FPS on the tested M5.'}</p><label className="toggle-row"><span>Face detail restoration<small>Sharper detail, substantially slower. Restart capture to change.</small></span><input type="checkbox" checked={restoration} disabled={!restorationAvailable||cameraOn||cameraBusy||visualMode!=='faceswap'} onChange={e=>setRestoration(e.target.checked)}/></label><label className="field">Adult appearance<select value={reference} disabled={cameraBusy} onChange={e=>void selectReference(e.target.value)}>{references.map(item=><option key={item.id} value={item.id} disabled={cameraOn&&!item.installed}>{item.name}{item.installed?'':' · local reference needed'}</option>)}</select></label><p className="fine-print">Ten actor entries are a curated selection, not a 2026 ranking. Public reference photos retain their original credits and licenses. Voice pairing uses generic pitch/formant settings, not the actor’s voice.</p>{activeReference?.attribution&&<details className="fine-print"><summary>Reference photo credit</summary><p>{activeReference.attribution.credit} · {activeReference.attribution.license} · modified output</p><p style={{overflowWrap:'anywhere'}}>{activeReference.attribution.source}<br/>{activeReference.attribution.licenseUrl}</p></details>}<div className="button-row"><button className="secondary-button" disabled={cameraOn||cameraBusy} onClick={()=>void neuralAction('setup')}>Choose runtime folder</button><button className="secondary-button" disabled={cameraOn||cameraBusy} onClick={()=>void neuralAction('import')}>Import local reference</button>{visualMode==='portrait'&&<button className="secondary-button" disabled={!cameraOn||cameraBusy} onClick={()=>void neuralAction('calibrate')}>Recalibrate neutral pose</button>}</div><p className="fine-print">Start with a relaxed face looking forward. Click Start virtual camera after capture begins, then select OBS Virtual Camera in your call. Keep OBS’s own virtual camera stopped.</p></>}</div>}
+          {(tab==='Studio'||tab==='Settings')&&<div className="panel"><div className="section-title"><h2><Sparkles size={18}/> Appearance engine</h2><span className="tiny-label">NEURAL AI</span></div><label className="field">Transformation mode<select value={visualMode} disabled={cameraOn||cameraBusy} onChange={e=>setVisualMode(e.target.value)}><option value="faceswap">Live webcam face replacement · GhostV2</option><option value="portrait">Photo animation · LivePortrait (experimental, slow)</option><option value="effects">Procedural 2D Masks (Legacy)</option></select></label>{visualMode!=='effects'&&<><p className="fine-print">{visualMode==='portrait'?'This optional mode animates a still reference photo using camera motion. It does not replace the face in your live camera scene. Widescreen formatting adds blurred side panels; it does not generate a moving body or scene.':'Replaces the face in each live webcam frame while preserving your current head movement, body, hair, and surroundings. The reference photo supplies identity, not the output scene. Realism and speed remain experimental.'}</p><label className="toggle-row"><span>Face detail restoration<small>Optional detail enhancement; reduces frame rate and does not guarantee realism.</small></span><input type="checkbox" checked={restoration} disabled={!restorationAvailable||cameraBusy||visualMode!=='faceswap'} onChange={e=>void toggleRestoration(e.target.checked)}/></label><label className="field">Adult appearance<select value={reference} disabled={cameraBusy} onChange={e=>void selectReference(e.target.value)}>{references.map(item=><option key={item.id} value={item.id} disabled={cameraOn&&!item.installed}>{item.name}{item.installed?'':' · local reference needed'}</option>)}</select></label><p className="fine-print">Eighteen adult character, executive, and public reference entries are a curated selection. Public reference photos retain their original credits and licenses. Voice pairing uses generic pitch/formant settings, not synthetic voice cloning.</p>{activeReference?.attribution&&<details className="fine-print"><summary>Reference photo credit</summary><p>{activeReference.attribution.credit} · {activeReference.attribution.license} · modified output</p><p style={{overflowWrap:'anywhere'}}>{activeReference.attribution.source}<br/>{activeReference.attribution.licenseUrl}</p></details>}<div className="button-row"><button className="secondary-button" disabled={cameraOn||cameraBusy} onClick={()=>void neuralAction('setup')}>Choose runtime folder</button><button className="secondary-button" disabled={cameraOn||cameraBusy} onClick={()=>void neuralAction('import')}>Import local reference</button>{visualMode==='portrait'&&<button className="secondary-button" disabled={!cameraOn||cameraBusy} onClick={()=>void neuralAction('calibrate')}>Recalibrate neutral pose</button>}</div><p className="fine-print">Start with a relaxed face looking forward. Click Start virtual camera after capture begins, then select OBS Virtual Camera in your call. Keep OBS’s own virtual camera stopped.</p></>}</div>}
           {(tab==='Studio'||tab==='Settings')&&visualMode==='effects'&&<div className="panel persona-panel"><div className="section-title"><h2><Sparkles size={18}/> Choose your persona</h2><span className="count">06</span></div><p className="panel-description">Original characters. A whole new presence.</p><div className="persona-grid">{personas.map(p=><button key={p.id} className={'persona '+(settings.persona===p.id?'chosen':'')} onClick={()=>selectPersona(p.id)} style={{'--persona':p.color} as React.CSSProperties}><div className={'persona-art '+p.id}><span>{p.glyph}</span><div className="character-head"><i/><i/><em/></div>{settings.persona===p.id&&<b><Check size={12}/></b>}</div><strong>{p.name}</strong><small>{p.tag}</small></button>)}</div><div className="persona-description"><span className="dot" style={{background:activePersona.color}}/>{activePersona.description}</div>{slider('Effect intensity','intensity',0,1,.01,'')}<label className="toggle-row"><span><Layers size={15}/>Landmark debug overlay</span><input type="checkbox" checked={settings.debug} onChange={e=>update({debug:e.target.checked})}/></label></div>}
           {(tab==='Studio'||tab==='Voice lab')&&<div className="panel voice-panel"><div className="section-title"><h2><AudioLines size={18}/> Voice pairing</h2><span className="tiny-label">LIVE DSP</span></div><label className="toggle-row pairing"><span>Match voice to persona<small>Editable character settings, independent of identity</small></span><input type="checkbox" checked={settings.autoVoice} onChange={e=>{if(e.target.checked) update({autoVoice:true,pitch:pairedVoice.pitch,formant:pairedVoice.formant,robot:visualMode==='effects'?activePersona.robot:0}); else update({autoVoice:false});}}/></label><label className="field">Voice preset<select value="" onChange={e=>{const v=voices.find(v=>v.id===e.target.value); if(v) update({pitch:v.pitch,formant:v.formant,robot:v.robot,autoVoice:false});}}><option value="">{settings.autoVoice?pairedVoice.name+' · generic linked voice':'Custom / manual voice'}</option>{voices.map(v=><option key={v.id} value={v.id}>{v.name}</option>)}</select></label>{slider('Pitch','pitch',-12,12,1,' st')}{slider('Formant envelope','formant',-6,6,1,' st')}{tab==='Voice lab'&&<>{slider('Output gain','gain',0,2,.01,'×')}<label className="range"><span>Robot modulation<b>{Math.round(settings.robot*100)}%</b></span><input type="range" min="0" max="1" step="0.01" value={settings.robot} onChange={e=>update({robot:Number(e.target.value),autoVoice:false})}/></label><label className="toggle-row"><span>Soft noise gate</span><input type="checkbox" checked={settings.gate} onChange={e=>update({gate:e.target.checked})}/></label><p className="fine-print">Formants use a smoothed spectral envelope approximation. This is not voice cloning. Listen with headphones before routing to a call.</p><div className="button-row"><button className="primary" disabled={audioBusy} onClick={audioOn?stopAudio:startAudio}>{audioOn?<Square size={15}/>:<Mic size={15}/>} {audioOn?'Stop microphone':'Start microphone'}</button><button className="secondary-button" onClick={()=>setMuted(v=>!v)}>{muted?'Unmute':'Mute'}</button></div></>}<div className="voice-footer"><Waves size={16}/><span>{settings.autoVoice?'Voice follows your character':'Manual voice override active'}</span><span className="dot green"/></div></div>}
-          {(tab==='Devices'||tab==='Voice lab')&&<div className="panel device-panel"><div className="section-title"><h2><SlidersHorizontal size={18}/> Device routing</h2><button className="icon-button" onClick={refresh} title="Refresh devices"><RefreshCw size={16}/></button></div>{deviceSelect('Camera input','videoinput',camera,setCamera,cameraOn||cameraBusy)}{deviceSelect('Microphone input','audioinput',microphone,setMicrophone,audioOn||audioBusy)}{deviceSelect('Processed audio output','audiooutput',sink,setSink,audioOn||audioBusy)}<p className="fine-print">Choose silent processing to test without playback, headphones for monitoring, BlackHole on macOS, or CABLE Input on Windows for calls. Stop audio before changing its route. Never route output back to the selected input.</p><div className="button-row"><button className="primary" disabled={cameraBusy} onClick={cameraOn?stopCamera:startCamera}><Camera size={15}/>{cameraOn?'Stop camera':'Start camera'}</button><button className="secondary-button" disabled={audioBusy} onClick={audioOn?stopAudio:startAudio}><Mic size={15}/>{audioOn?'Stop audio':'Start audio'}</button><button className="secondary-button" disabled={visualMode!=='effects'&&(!cameraOn||cameraBusy)} onClick={visualMode!=='effects'?()=>void neuralAction('virtual'):openOutput}><MonitorUp size={15}/>{visualMode!=='effects'?(nativeOutput?'Stop virtual camera':'Start virtual camera'):'Output window'}</button></div>{slider('Additional audio delay','offset',0,250,1,' ms')}<p className="fine-print">Tune delay using a visible clap in the receiving app. Audio and video use separate conferencing device clocks; automatic drift correction is not implemented.</p></div>}
+          {(tab==='Devices'||tab==='Voice lab')&&<div className="panel device-panel"><div className="section-title"><h2><SlidersHorizontal size={18}/> Device routing</h2><button className="icon-button" onClick={refresh} title="Refresh devices"><RefreshCw size={16}/></button></div>{deviceSelect('Camera input','videoinput',camera,setCamera,cameraOn||cameraBusy)}<p className="fine-print" style={{color:'#f3c574'}}>💡 <b>Camera input:</b> Select your physical webcam (e.g. <b>MacBook Pro Camera</b>). Do not select OBS Virtual Camera here; OBS Virtual Camera is the output destination for your calls.</p>{deviceSelect('Microphone input','audioinput',microphone,setMicrophone,audioOn||audioBusy)}{deviceSelect('Processed audio output','audiooutput',sink,setSink,audioOn||audioBusy)}<p className="fine-print">Choose silent processing to test without playback, headphones for monitoring, BlackHole on macOS, or CABLE Input on Windows for calls. Stop audio before changing its route. Never route output back to the selected input.</p><div className="button-row"><button className="primary" disabled={cameraBusy} onClick={cameraOn?stopCamera:startCamera}><Camera size={15}/>{cameraOn?'Stop camera':'Start camera'}</button><button className="secondary-button" disabled={audioBusy} onClick={audioOn?stopAudio:startAudio}><Mic size={15}/>{audioOn?'Stop audio':'Start audio'}</button><button className="secondary-button" disabled={visualMode!=='effects'&&(!cameraOn||cameraBusy)} onClick={visualMode!=='effects'?()=>void neuralAction('virtual'):openOutput}><MonitorUp size={15}/>{visualMode!=='effects'?(nativeOutput?'Stop virtual camera':'Start virtual camera'):'Output window'}</button></div>{slider('Additional audio delay','offset',0,250,1,' ms')}<p className="fine-print">Tune delay using a visible clap in the receiving app. Audio and video use separate conferencing device clocks; automatic drift correction is not implemented.</p></div>}
           {tab==='Settings'&&<><div className="panel"><div className="section-title"><h2><Cpu size={18}/> Performance & privacy</h2></div><label className="field">Performance profile<select value={settings.profile} onChange={e=>update({profile:e.target.value})}>{['Performance','Balanced','Quality','Auto'].map(p=><option key={p}>{p}</option>)}</select></label><p className="fine-print">Restart camera after changing profiles. Performance: 640 wide. Balanced: 720p target. Quality: 1080p target. Auto reduces canvas resolution under load. CPU face tracking; no GPU model claim.</p><label className="toggle-row"><span>Synthetic appearance disclosure</span><input type="checkbox" checked={settings.disclosure} onChange={e=>update({disclosure:e.target.checked})}/></label><button className="secondary-button" onClick={diagnostics}><Download size={15}/>Export redacted diagnostics</button><button className="danger-text" onClick={()=>setSettings({...defaults})}>Reset preferences</button></div><div className="panel"><div className="section-title"><h2><Layers size={18}/> Your saved pairings</h2></div><label className="field">Preset name<input value={presetName} maxLength={40} onChange={e=>setPresetName(e.target.value)} placeholder="e.g. Evening studio"/></label><button className="secondary-button" disabled={!presetName.trim()||settings.custom.length>=20} onClick={()=>{ update({custom:[...settings.custom,{name:presetName.trim(),persona:settings.persona,pitch:settings.pitch,formant:settings.formant,robot:settings.robot}]}); setPresetName('');}}>Save current appearance & voice</button>{settings.custom.map((p,i)=><div className="saved-preset" key={i}><button onClick={()=>update({persona:p.persona,pitch:p.pitch,formant:p.formant,robot:p.robot,autoVoice:false})}>{p.name}</button><button title="Delete preset" onClick={()=>update({custom:settings.custom.filter((_,j)=>i!==j)})}><X size={14}/></button></div>)}</div></>}
         </section>
       </div>
