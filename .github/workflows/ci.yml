@@ -19,6 +19,7 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run build
+      - run: python -m compileall -q native scripts
       - run: npm run check:privacy
       - run: npm run licenses
       - run: npm audit --audit-level=moderate

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "anne-hathaway",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/AnneHathaway-byPhilipRomano-Crop.jpg/960px-AnneHathaway-byPhilipRomano-Crop.jpg",
+    "sha256": "fbb2b676c70270c417dde14c64aec215c0ee05e3853d22ea37e41b9c0494f9f9",
+    "credit": "PhilipRomano",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:AnneHathaway-byPhilipRomano-Crop.jpg"
+  },
+  {
+    "id": "brad-pitt",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Brad_Pitt-69858.jpg/960px-Brad_Pitt-69858.jpg",
+    "sha256": "071dfcd50e3a6e6c46a8e143e316a928dbba2ff08f31e66e304a6ce9ceda8a05",
+    "credit": "Harald Krichel",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Brad_Pitt-69858.jpg"
+  },
+  {
+    "id": "deepika-padukone",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Deepika_Padukone_2025_%281%29.png/960px-Deepika_Padukone_2025_%281%29.png",
+    "sha256": "b0e0dd88c2cd2cbef6ac869152d824682122588917b59b4768ae507d80e364b0",
+    "credit": "Narendra Modi",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Deepika_Padukone_2025_(1).png"
+  },
+  {
+    "id": "hrithik-roshan",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Hrithik_at_Rado_launch.jpg",
+    "sha256": "fc7f34722137ee38198f05661f4e9205fe2d79ca21df2423c59d9c0375fa3da3",
+    "credit": "Bollywood Hungama",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Hrithik_at_Rado_launch.jpg"
+  },
+  {
+    "id": "leonardo-dicaprio",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/2/2d/LeoPTABFI191125-28_%28cropped%29.jpg",
+    "sha256": "75f485f49c131112d30799dad122fbefa23ede9519a7eb96721c77952f80f16c",
+    "credit": "Raph_PH",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:LeoPTABFI191125-28_(cropped).jpg"
+  },
+  {
+    "id": "margot-robbie",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/90/Margot_Robbie_Wuthering_Heights_premiere_%28cropped%29.jpg/960px-Margot_Robbie_Wuthering_Heights_premiere_%28cropped%29.jpg",
+    "sha256": "07f67b64081554d651eac7ae835bd3e491f2262086b2490c2fa0efe75b55ed5b",
+    "credit": "Ondine Goat",
+    "license": "CC0",
+    "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "source": "https://commons.wikimedia.org/wiki/File:Margot_Robbie_Wuthering_Heights_premiere_(cropped).jpg"
+  },
+  {
+    "id": "scarlett-johansson",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Scarlett_Johansson-8588.jpg/960px-Scarlett_Johansson-8588.jpg",
+    "sha256": "17174982682ce05455887244c38cfed20915769e7c99512be3f427d8039092f6",
+    "credit": "Harald Krichel",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Scarlett_Johansson-8588.jpg"
+  },
+  {
+    "id": "shah-rukh-khan",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/6/6e/Shah_Rukh_Khan_graces_the_launch_of_the_new_Santro.jpg",
+    "sha256": "db1554ea37707b5e283986f40a15e48b150e5476fa1ce17c98bfdfa0a039fd46",
+    "credit": "Bollywood Hungama",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Shah_Rukh_Khan_graces_the_launch_of_the_new_Santro.jpg"
+  },
+  {
+    "id": "tom-cruise",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Tom_Cruise_at_53rd_Saturn_Awards_2026-01.jpg/960px-Tom_Cruise_at_53rd_Saturn_Awards_2026-01.jpg",
+    "sha256": "776410540c6fddeda3c3b56b4e1b03353c64376a7fdb6cbee4a1bc33fe0cb5d0",
+    "credit": "Kevin Paul",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tom_Cruise_at_53rd_Saturn_Awards_2026-01.jpg"
+  },
+  {
+    "id": "zendaya",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Zendaya-byPhilipRomano.jpg/960px-Zendaya-byPhilipRomano.jpg",
+    "sha256": "f4d736bf9123999d4f45b38dab83e6d1992801e0dfa41d33622b81187beb22e8",
+    "credit": "PhilipRomano",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Zendaya-byPhilipRomano.jpg"
+  }
+]

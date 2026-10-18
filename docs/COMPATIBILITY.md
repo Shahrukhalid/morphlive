@@ -21,8 +21,12 @@ count as passing external integration tests.
 
 ## Conferencing acceptance records
 
-- macOS / Zoom: tested version not collected; OBS camera route and BlackHole audio
-  route NOT TESTED. Zoom is installed; no completed call acceptance test.
+- macOS / Zoom Workplace 7.2.2 (88465): direct neural frames through installed
+  OBS Virtual Camera were observed in Video & effects preview, including live
+  head-position changes and identity switching. Escape yielded the OBS inactive
+  slate. Preview video route PASS; natural-motion/realism acceptance FAIL. Live
+  UI varied around 3–9 FPS before later priority/metrics fixes. No meeting was
+  joined. Audio route and meeting transmission NOT TESTED.
 - macOS / Google Meet / Chrome: browser version not collected; OBS / BlackHole
   route NOT TESTED. Permission, synchronization, reconnection tests pending.
 - macOS / Google Meet / Edge: version not collected; NOT TESTED.
@@ -31,7 +35,8 @@ count as passing external integration tests.
 - macOS / Discord: version not collected; NOT TESTED.
 - macOS / OBS 32.1.0: local integration check attempted. OBS displayed a crash-
   recovery prompt, and native source controls could not be operated reliably
-  through automation. External virtual-camera reception remains NOT TESTED.
+  through automation. That earlier window-capture route remains NOT TESTED; the later direct
+  native sender was received in Zoom preview as recorded above.
   The clean MorphLive output window itself receives live anonymous frames.
 - macOS / BlackHole: BLOCKED for specified route because BlackHole is not installed.
   No driver installation was performed.

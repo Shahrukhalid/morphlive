@@ -1,12 +1,64 @@
-const { app, BrowserWindow, protocol, net, session, systemPreferences, ipcMain } = require('electron');
+const { app, BrowserWindow, protocol, net, session, systemPreferences, ipcMain, dialog, powerSaveBlocker } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const { validatePreferences } = require('./preferences.cjs');
+const { NeuralBridge } = require('./neural.cjs');
 const { pathToFileURL } = require('node:url');
 protocol.registerSchemesAsPrivileged([{ scheme: 'morph', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 let main;
+let neural;
 const local = (url) => { try { const parsed = new URL(url); return parsed.protocol === 'morph:' && parsed.host === 'studio'; } catch { return false; } };
 app.whenReady().then(() => {
+  let runtimeRoot=app.isPackaged?path.join(app.getPath('userData'),'neural-runtime'):path.resolve(__dirname,'../../..');
+  const runtimeLocation=path.join(app.getPath('userData'),'neural-runtime-location.json');
+  try{if(fs.statSync(runtimeLocation).size<8192){const saved=JSON.parse(fs.readFileSync(runtimeLocation,'utf8'));if(typeof saved.root==='string'&&path.isAbsolute(saved.root))runtimeRoot=saved.root;}}catch{}
+  const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../../native/references.json'),'utf8'));
+  let photoAttributions=[];try{photoAttributions=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../../native/actor-references.json'),'utf8'));}catch{}
+  const script=path.resolve(__dirname,'../../../native/morphlive_engine/server.py').replace('app.asar'+path.sep,'app.asar.unpacked'+path.sep);
+  let activity;
+  neural=new NeuralBridge(runtimeRoot,script,{activity:active=>{
+    if(active&&activity===undefined)activity=powerSaveBlocker.start('prevent-app-suspension');
+    if(!active&&activity!==undefined){powerSaveBlocker.stop(activity);activity=undefined;}
+  }});
+  const catalogStatus=()=>catalog.map(item=>{
+    const file=path.join(runtimeRoot,'.runtime/references',item.id+'.png');const installed=fs.existsSync(file);
+    let attribution=photoAttributions.find(photo=>photo.id===item.id);
+    if(attribution&&(!installed||fs.statSync(file).size>10_000_000||crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex')!==attribution.sha256))attribution=undefined;
+    return {...item,installed,attribution};
+  });
+  ipcMain.handle('neural:command',async(event,request)=>{
+    if(event.sender!==main?.webContents||!request||typeof request!=='object')throw new Error('Forbidden');
+    const reference=catalog.find(item=>item.id===request.reference);
+    if(request.op==='status')return {references:catalogStatus(),running:!!neural.child,restorationAvailable:fs.existsSync(path.join(runtimeRoot,'.runtime/models/ghostv2/restorer.safetensors'))};
+    if(request.op==='stop'){neural.stop();return {ok:true};}
+    if(request.op==='setup'){
+      if(neural.child)throw new Error('Stop neural capture before changing runtime.');
+      const choice=await dialog.showOpenDialog(main,{title:'Select the MorphLive folder containing .venv and .runtime',properties:['openDirectory']});
+      if(!choice.canceled&&choice.filePaths[0]){
+        const selected=choice.filePaths[0];
+        if(!fs.existsSync(path.join(selected,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python')))throw new Error('Choose the installed MorphLive source folder containing .venv.');
+        runtimeRoot=selected;neural.root=runtimeRoot;
+        fs.writeFileSync(runtimeLocation,JSON.stringify({root:runtimeRoot}),{mode:0o600});
+      }
+      return {references:catalogStatus(),restorationAvailable:fs.existsSync(path.join(runtimeRoot,'.runtime/models/ghostv2/restorer.safetensors'))};
+    }
+    if(request.op==='import'&&reference){
+      if(neural.child)throw new Error('Stop neural capture before importing a reference.');
+      const choice=await dialog.showOpenDialog(main,{title:'Choose an adult reference you have permission to transform',properties:['openFile'],filters:[{name:'Portrait image',extensions:['png','jpg','jpeg','webp']}]});
+      if(!choice.canceled&&choice.filePaths[0]){
+        const source=choice.filePaths[0];if(fs.statSync(source).size>10_000_000)throw new Error('Choose an image smaller than 10 MB.');
+        const target=path.join(runtimeRoot,'.runtime/references');fs.mkdirSync(target,{recursive:true,mode:0o700});fs.copyFileSync(source,path.join(target,reference.id+'.png'));fs.chmodSync(path.join(target,reference.id+'.png'),0o600);
+      }
+      return {references:catalogStatus()};
+    }
+    if(request.op==='start'&&reference&&['portrait','faceswap'].includes(request.backend)){try{return await neural.start(reference.id,request.backend,request.enhance===true);}catch(error){neural.stop();throw error;}}
+    if(request.op==='frame'&&typeof request.jpeg==='string'&&request.jpeg.length<=1_400_000)return neural.request({op:'frame',jpeg:request.jpeg});
+    if(request.op==='virtual'&&typeof request.enabled==='boolean')return neural.request({op:'virtual',enabled:request.enabled});
+    if(request.op==='calibrate')return neural.request({op:'calibrate'});
+    if(request.op==='reference'&&reference)return neural.request({op:'reference',reference:reference.id});
+    throw new Error('Invalid neural command');
+  });
   const root = path.resolve(__dirname, '../../../dist');
   protocol.handle('morph', (request) => {
     const url = new URL(request.url);
@@ -51,5 +103,5 @@ app.whenReady().then(() => {
   main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
 });
-app.on('before-quit', () => session.defaultSession.flushStorageData());
+app.on('before-quit', () => {neural?.stop();session.defaultSession.flushStorageData();});
 app.on('window-all-closed', () => app.quit());

@@ -14,17 +14,26 @@ Live camera effects. Original face-tracked characters. A voice of your own.
 
 MorphLive is an experimental Electron desktop application that processes camera
 and microphone input locally. It uses MediaPipe face landmarks, a Canvas effect
-renderer, and a streaming AudioWorklet phase vocoder. No account, API key, cloud
+renderer, and a streaming AudioWorklet phase vocoder. An optional local Python
+runtime adds genuine GhostV2 neural face swapping and direct OBS virtual-camera
+output; see [native neural setup and measured limits](docs/NEURAL_RUNTIME.md). No account, API key, cloud
 processing, recording, or telemetry is required.
 
 **This is a development preview, not a finished production release.** Automated
-DSP and build checks pass. A real 720p camera, local face tracking, persona controls, the output window,
+DSP, native-bridge lifecycle, and build checks pass. A real 720p camera, local face tracking, persona controls, the output window,
 and microphone processing to a silent sink were exercised on Apple Silicon macOS.
-Audible quality, external virtual devices, sustained sessions, and conferencing
-acceptance tests still require verification. Read [implementation status](docs/IMPLEMENTATION_STATUS.md) before
+Zoom preview received transformed video, but visual realism did not meet the
+requested standard. Audible quality, virtual microphone, sustained sessions, and
+meeting transmission tests still require verification. Read [implementation status](docs/IMPLEMENTATION_STATUS.md) before
 using it in a live call.
 
 ## Features implemented in source
+
+- Optional GhostV2 neural face replacement, two local fictional adult reference
+  slots, ten curated actor/actress references, cached live identity switching,
+  and direct transformed frames to the installed OBS virtual camera.
+- SHA-256-pinned optional model/photo installers. Models, reference photos,
+  Python dependencies, and generated packages stay out of Git.
 
 - Explicit camera and microphone capture, device selection, stop and mute.
 - Optional local face landmark tracking in a worker with one frame in flight.
@@ -41,9 +50,13 @@ using it in a live call.
   headphones or a separately installed virtual audio device.
 - Emergency stop (`Escape`) closes camera, microphone, and output window.
 
-There is no realistic face replacement, voice cloning, native virtual camera,
-native virtual microphone, neural denoiser, automatic clock drift correction, or
-verified GPU model acceleration. Masks are overlays, not realistic AI face swaps.
+Neural face swapping is experimental: a short M5 fictional-input test measured
+14.09 FPS, while the live desktop check varied around 3–9 FPS. Zoom camera
+preview reception works; natural-motion and realism acceptance still FAIL. It keeps
+the original hair, body, and room. Actor references use separately downloaded,
+credited public photos; actor voices are not cloned. There is no bundled native
+virtual driver, neural voice conversion, or automatic clock drift correction.
+Legacy masks remain procedural overlays.
 Character voice mappings are editable settings, not identity or gender inference.
 
 ## Quick start
@@ -89,7 +102,12 @@ Rebuild and restart Electron to apply renderer changes there.
 
 ## Use in a call
 
-**Video:** Install OBS separately. In MorphLive open **Output**. In OBS add a
+**Neural video:** Follow [native setup](docs/NEURAL_RUNTIME.md), activate the
+OBS camera extension separately, start capture, then **Start virtual camera**.
+Keep OBS’s own virtual camera stopped while the native engine sends frames.
+Select **OBS Virtual Camera** in the receiver.
+
+**Legacy effects video:** Install OBS separately. In MorphLive open **Output**. In OBS add a
 window capture of **MorphLive Output** (macOS Screen Capture in window mode on
 modern Macs), fit it to the scene, and start **OBS Virtual Camera**. The separate
 window contains only the transformed frame and disclosure. It targets about
