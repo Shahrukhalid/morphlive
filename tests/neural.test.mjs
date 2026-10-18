@@ -11,6 +11,9 @@ function fixture(){
 }
 test('neural bridge allows one response at a time and rejects overlapping frames',async()=>{
   const {bridge,child}=fixture();const start=bridge.start('fictional-female');
+  const started=JSON.parse(child.stdin.read().toString());
+  assert.equal(started.backend,'faceswap');
+  assert.equal(started.enhance,false);
   child.stdout.write('{"ok":true,"device":"test"}\n');assert.equal((await start).device,'test');
   const frame=bridge.request({op:'frame',jpeg:'test'});
   await assert.rejects(bridge.request({op:'frame',jpeg:'test'}),/busy/);
