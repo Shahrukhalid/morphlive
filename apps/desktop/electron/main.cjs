@@ -34,11 +34,11 @@ app.whenReady().then(() => {
   const settingsPath=path.join(app.getPath('userData'),'morphlive-preferences.json');
   ipcMain.on('preferences:load', event => {
     event.returnValue='';
-    if(!local(event.senderFrame?.url))return;
+    if(event.sender !== main?.webContents)return;
     try { if(fs.statSync(settingsPath).size<=16384)event.returnValue=validatePreferences(fs.readFileSync(settingsPath,'utf8'))||''; } catch {}
   });
   ipcMain.handle('preferences:save', (event, serialized) => {
-    if(!local(event.senderFrame?.url))return false;
+    if(event.sender !== main?.webContents)return false;
     const valid=validatePreferences(serialized);if(!valid)return false;
     try { fs.writeFileSync(settingsPath+'.tmp',valid,{mode:0o600});fs.renameSync(settingsPath+'.tmp',settingsPath);return true; } catch {return false;}
   });
