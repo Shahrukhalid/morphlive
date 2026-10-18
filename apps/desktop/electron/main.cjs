@@ -1,13 +1,16 @@
-const { app, BrowserWindow, protocol, net, session, systemPreferences, ipcMain, dialog, powerSaveBlocker } = require('electron');
+const { app, BrowserWindow, protocol, net, session, systemPreferences, ipcMain, dialog, shell, powerSaveBlocker } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const { validatePreferences } = require('./preferences.cjs');
+const { ClipRenderer } = require('./render.cjs');
 const { NeuralBridge } = require('./neural.cjs');
 const { pathToFileURL } = require('node:url');
 protocol.registerSchemesAsPrivileged([{ scheme: 'morph', privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true } }]);
 let main;
 let neural;
+let clip;
+let choosingClip=false;
 const local = (url) => { try { const parsed = new URL(url); return parsed.protocol === 'morph:' && parsed.host === 'studio'; } catch { return false; } };
 app.whenReady().then(() => {
   let runtimeRoot=app.isPackaged?path.join(app.getPath('userData'),'neural-runtime'):path.resolve(__dirname,'../../..');
@@ -21,6 +24,24 @@ app.whenReady().then(() => {
     if(active&&activity===undefined)activity=powerSaveBlocker.start('prevent-app-suspension');
     if(!active&&activity!==undefined){powerSaveBlocker.stop(activity);activity=undefined;}
   }});
+  clip=new ClipRenderer(runtimeRoot,script.replace('server.py','render.py'));
+  ipcMain.handle('render:command',async(event,request)=>{
+    if(event.sender!==main?.webContents||!request||typeof request!=='object')throw new Error('Forbidden');
+    if(request.op==='status')return clip.state;
+    if(request.op==='cancel')return clip.cancel();
+    if(request.op==='open'&&clip.output){await shell.openPath(clip.output);return clip.state;}
+    if(request.op!=='start'||!catalog.some(item=>item.id===request.reference))throw new Error('Invalid clip command');
+    if(neural.child||clip.busy||choosingClip)throw new Error('Stop capture or the current render first.');
+    choosingClip=true;
+    try{
+      const input=await dialog.showOpenDialog(main,{title:'Choose a local clip (up to five minutes)',properties:['openFile'],filters:[{name:'Video',extensions:['mp4','mov','mkv','webm']}]});
+      if(input.canceled)return clip.state;
+      const output=await dialog.showSaveDialog(main,{title:'Save rendered clip',defaultPath:'morphlive-render-'+Date.now()+'.mp4',filters:[{name:'MP4 video',extensions:['mp4']}]});
+      if(output.canceled||!output.filePath)return clip.state;
+      if(fs.existsSync(output.filePath))throw new Error('Choose a new filename; existing videos are never replaced.');
+      return clip.start({input:input.filePaths[0],output:output.filePath,reference:request.reference,restore:request.restore!==false});
+    }finally{choosingClip=false;}
+  });
   const catalogStatus=()=>catalog.map(item=>{
     const file=path.join(runtimeRoot,'.runtime/references',item.id+'.png');const installed=fs.existsSync(file);
     let attribution=photoAttributions.find(photo=>photo.id===item.id);
@@ -29,6 +50,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle('neural:command',async(event,request)=>{
     if(event.sender!==main?.webContents||!request||typeof request!=='object')throw new Error('Forbidden');
+    if((clip.busy||choosingClip)&&!['status','stop'].includes(request.op))throw new Error('Wait for clip rendering to finish or cancel it first.');
     const reference=catalog.find(item=>item.id===request.reference);
     if(request.op==='status')return {references:catalogStatus(),running:!!neural.child,restorationAvailable:fs.existsSync(path.join(runtimeRoot,'.runtime/models/ghostv2/restorer.safetensors'))};
     if(request.op==='stop'){neural.stop();return {ok:true};}
@@ -38,7 +60,7 @@ app.whenReady().then(() => {
       if(!choice.canceled&&choice.filePaths[0]){
         const selected=choice.filePaths[0];
         if(!fs.existsSync(path.join(selected,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python')))throw new Error('Choose the installed MorphLive source folder containing .venv.');
-        runtimeRoot=selected;neural.root=runtimeRoot;
+        runtimeRoot=selected;neural.root=runtimeRoot;clip.root=runtimeRoot;
         fs.writeFileSync(runtimeLocation,JSON.stringify({root:runtimeRoot}),{mode:0o600});
       }
       return {references:catalogStatus(),restorationAvailable:fs.existsSync(path.join(runtimeRoot,'.runtime/models/ghostv2/restorer.safetensors'))};
@@ -104,5 +126,5 @@ app.whenReady().then(() => {
   main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
 });
-app.on('before-quit', () => {neural?.stop();session.defaultSession.flushStorageData();});
+app.on('before-quit', () => {neural?.stop();clip?.cancel();session.defaultSession.flushStorageData();});
 app.on('window-all-closed', () => app.quit());
