@@ -9,11 +9,11 @@ if sys.platform=='darwin':
     ctypes.CDLL('/usr/lib/libSystem.B.dylib').pthread_set_qos_class_self_np(0x19,0)
 import cv2
 import numpy as np
-from portrait import PortraitEngine, ROOT
+from faceswap import FaceSwapEngine, ROOT
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--frames', type=int, default=12)
-parser.add_argument('--engine',choices=['portrait','faceswap'],default='portrait')
+parser.add_argument('--engine',choices=['faceswap'],default='faceswap')
 parser.add_argument('--width',type=int,default=640)
 parser.add_argument('--height',type=int,default=640)
 parser.add_argument('--warmups',type=int,default=3)
@@ -23,14 +23,8 @@ if not 1 <= args.frames <= 120:
     parser.error('frames must be 1..120')
 if not 128<=args.width<=1920 or not 128<=args.height<=1080 or not 0<=args.warmups<=10:
     parser.error('use width 128..1920, height 128..1080, warmups 0..10')
-if args.restore and args.engine!='faceswap':
-    parser.error('--restore requires --engine faceswap')
 started = time.perf_counter()
-if args.engine=='faceswap':
-    from faceswap import FaceSwapEngine
-    engine=FaceSwapEngine(enhance=args.restore)
-else:
-    engine = PortraitEngine()
+engine=FaceSwapEngine(enhance=args.restore)
 rgb = cv2.cvtColor(cv2.imread(str(ROOT / '.runtime/references/fictional-male.png')), cv2.COLOR_BGR2RGB)
 scale=min(args.width/rgb.shape[1],args.height/rgb.shape[0])
 resized=cv2.resize(rgb,(round(rgb.shape[1]*scale),round(rgb.shape[0]*scale)))
