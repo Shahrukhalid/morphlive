@@ -14,6 +14,7 @@ import numpy as np
 import torch
 from safetensors.torch import load_file
 from images import reference_rgb
+from composite import blend_face
 
 ROOT=Path(os.environ.get('MORPHLIVE_RUNTIME_ROOT',Path(__file__).resolve().parents[2]))
 CATALOG=Path(__file__).resolve().parents[1]/'references.json'
@@ -47,6 +48,8 @@ class FaceSwapEngine:
         state={k.replace('_orig_mod.',''):v for k,v in load_file(str(weights/'generator.safetensors')).items()}
         self.G.load_state_dict(state,strict=True)
         self.G=self.G.to(self.device,self.dtype).eval()
+        if self.device=='mps':
+            self.G=self.G.to(memory_format=torch.channels_last)
         self.restorer=None
         if enhance or os.environ.get('MORPHLIVE_RESTORE')=='1':
             from GFPGAN.gfpganv1_clean_arch import GFPGANv1Clean
@@ -134,19 +137,7 @@ class FaceSwapEngine:
         if generated.shape[0]!=self.size:
             ratio=generated.shape[0]/self.size
             matrix=matrix*ratio
-            target=cv2.resize(target,(generated.shape[1],generated.shape[0]))
-        # Match low-frequency illumination, retaining generated skin detail.
-        generated=np.clip(generated.astype(np.float32)+.55*(cv2.GaussianBlur(target,(0,0),8).astype(np.float32)-cv2.GaussianBlur(generated,(0,0),8)),0,255)
-        inverse=cv2.invertAffineTransform(matrix);h,w=rgb.shape[:2]
-        warped=cv2.warpAffine(generated,inverse,(w,h))
-        mask=np.zeros((h,w),np.float32)
-        oval=points[[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109]]
-        cv2.fillConvexPoly(mask,cv2.convexHull(oval.astype(np.int32)),1)
-        # Keep the blend inside the tracked face. Hands/occlusion still need QA.
-        radius=max(3,int(np.ptp(oval[:,0])*.025))
-        mask=cv2.erode(mask,np.ones((radius*2+1,radius*2+1),np.uint8))
-        mask=cv2.GaussianBlur(mask,(0,0),radius)[...,None]
-        output=np.ascontiguousarray(np.clip(warped*mask+rgb*(1-mask),0,255).astype(np.uint8))
+        output=blend_face(rgb,generated,matrix,points)
         # Keep video clean. Reference attribution remains in the app and manifest.
         return output,(time.perf_counter()-start)*1000,True
 
