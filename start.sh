@@ -13,10 +13,5 @@ if [ ! -d "node_modules" ]; then
     npm install
 fi
 
-if [ ! -d "dist" ]; then
-    echo "Building desktop studio..."
-    npm run build
-fi
-
 echo "Launching MorphLive..."
-npm run desktop
+npm start

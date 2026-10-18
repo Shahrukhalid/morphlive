@@ -7,12 +7,8 @@ echo ================================================
 if not exist "node_modules" (
     echo Installing application dependencies...
     call npm install
-)
-
-if not exist "dist" (
-    echo Building desktop studio...
-    call npm run build
+    if errorlevel 1 exit /b 1
 )
 
 echo Launching MorphLive...
-call npm run desktop
+call npm start
