@@ -46,7 +46,7 @@ export function App() {
   const update = (patch: Partial<Settings>) => setSettings(s => ({ ...s, ...patch }));
   const refresh = async () => { try { setDevices((await navigator.mediaDevices.enumerateDevices()).map(d => ({ deviceId: d.deviceId, label: d.label, kind: d.kind }))); } catch (e) { setError(message(e)); } };
   useEffect(() => {
-    void window.morphNeural?.command({op:'status'}).then(result=>{setReferences(result.references||[]);setRestorationAvailable(!!result.restorationAvailable);setRestoration(!!result.restorationAvailable);}).catch(()=>{});
+    void window.morphNeural?.command({op:'status'}).then(result=>{setReferences(result.references||[]);setRestorationAvailable(!!result.restorationAvailable);}).catch(()=>{});
     void refresh(); navigator.mediaDevices.addEventListener('devicechange', refresh);
     channel.current = new BroadcastChannel('morphlive-output');
     channel.current.onmessage = event => { if(event.data.type === 'ack' || event.data.type === 'ready') outputPending.current=false; if(event.data.type === 'emergency') emergency(); };
