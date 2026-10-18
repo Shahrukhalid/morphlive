@@ -4,7 +4,7 @@
 
 ### Your local reality studio.
 
-Live camera effects. Original face-tracked characters. A voice of your own.
+Live camera effects. Experimental face replacement. Local voice effects.
 
 ![Status: experimental preview](https://img.shields.io/badge/status-experimental_preview-b7a0fa)
 ![License: MIT](https://img.shields.io/badge/license-MIT-84e7cf)
@@ -19,9 +19,10 @@ Your current hair, body, clothing, and surroundings remain in the camera frame.
 Optional GFPGAN restoration improves some facial detail at a substantial speed cost
 and starts disabled.
 
-**Photo animation (`LivePortrait`)** is a separate experimental option. It animates
-a still reference portrait and can place it between blurred side panels. This is
-not live scene replacement, full-body transformation, or proof of real-time speed.
+**Full appearance transformation is not implemented.** The current model changes
+inner facial features, leaves beard/hair/head shape unchanged, and can paint over
+hands crossing the face. These are known failures, not camera-setting problems.
+The obsolete still-photo animation backend has been removed from the active source.
 
 **This is a development preview.** Processing stays local. Indistinguishable visual
 quality, sustained real-time performance, Windows hardware support, and meeting
@@ -32,11 +33,10 @@ transmission are not established. Earlier Zoom preview reception is documented i
 ## Features implemented in source
 
 - **Live webcam face replacement (`GhostV2`, default)**: Replaces facial features in each camera frame, retaining the live scene. It does not animate a still photograph as the output.
-- **Photo animation (`LivePortrait`, optional)**: Animates a reference portrait; widescreen formatting adds blurred side panels. This mode is separate from webcam face replacement.
 - **18 Curated Adult Personas**: Corporate executive leaders, executive partners, and character personalities. Public reference photos retain their original credits and licenses.
 - **Direct Virtual Camera Output**: Sends transformed frames directly to the OBS Virtual Camera for Zoom, Meet, Teams, Discord, and Omegle.
 - **Local DSP Voice Pairing**: Independent pitch shifting, formant envelope control, and soft noise gate.
-- **Strict Privacy**: 100% on-device processing. No recording, no telemetry, no network transmission of media or device identifiers.
+- **Local processing**: No capture uploads or telemetry. Explicit local clip export is available; live capture is not recorded.
 
 ## Quick start
 

@@ -1,8 +1,12 @@
 # Privacy
 
 Camera and microphone start only after local consent and a start action. Input
-media stays in volatile processing buffers. MorphLive does not record, upload,
-stream to remote services, identify people, create embeddings, or send telemetry.
+media stays in volatile processing buffers. Live capture is not recorded or uploaded. The neural engine computes reference
+identity embeddings in memory for face replacement; these are not saved. It does
+not identify the person in a camera feed or send telemetry. Explicit local clip
+rendering reads the selected video and writes a new MP4 only after a save action.
+It does not upload the clip. Temporary exports are removed on normal cancellation
+or failure; a forced operating-system kill may leave a private temporary folder.
 The Electron session blocks remote requests. The renderer CSP restricts scripts,
 workers, and connections to packaged resources.
 

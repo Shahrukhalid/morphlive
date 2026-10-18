@@ -39,8 +39,7 @@ these drivers. No claim of endorsement or affiliation is made.
 ## Optional native neural runtime
 
 GhostV2 source and generator are BSD-3-Clause; its selected CVLFace ViT identity
-model is identified as MIT by the publisher. LivePortrait human source/models
-are MIT. Optional GFPGAN v1.4 face restoration is Apache-2.0. MediaPipe and PyTorch retain their upstream licenses. The optional
+model is identified as MIT by the publisher. Optional GFPGAN v1.4 face restoration is Apache-2.0. MediaPipe and PyTorch retain their upstream licenses. The optional
 pyvirtualcam package is GPL-2.0 and is installed separately. No native Python
 dependencies, model weights, or source reference photos are bundled in this
 repository or the Electron package. Read docs/NEURAL_RUNTIME.md before bundling
