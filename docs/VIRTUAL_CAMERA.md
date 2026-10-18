@@ -1,6 +1,11 @@
 # Virtual camera route
 
-The implemented backend is a dedicated MorphLive Output window captured by OBS.
+Neural modes send frames directly through the installed OBS camera extension
+using pyvirtualcam. Follow NEURAL_RUNTIME.md, start capture, then Start virtual
+camera. Keep OBS’s own virtual camera stopped. This route was received in Zoom
+Workplace 7.2.2 video preview; meeting transmission remains unverified.
+
+Legacy effects use a dedicated MorphLive Output window captured by OBS.
 The app does not register a MorphLive Virtual Camera device. The selectable device
 is OBS Virtual Camera. Native macOS Camera Extensions and Windows Media Foundation
 virtual camera backends are future work requiring platform-specific implementation,
@@ -21,8 +26,8 @@ its window unminimized. The projector blanks on stop or missing frames, but OBS
 and receivers may retain a previous frame. Check the receiving app directly.
 
 Backend availability is visible through enumerated camera devices after media
-permissions, but presence alone does not prove an active OBS route. The UI only
-reports output window status, never claims an external app has received video.
+permissions, but presence alone does not prove an active OBS route. The UI reports local window/sender status; it cannot determine whether a
+receiving application has accepted the feed.
 
 Upstream references:
 https://obsproject.com/kb/virtual-camera-guide
