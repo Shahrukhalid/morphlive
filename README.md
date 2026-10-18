@@ -148,3 +148,9 @@ No real-person face or voice assets are included.
 Original MorphLive source and procedural character artwork are MIT licensed.
 Third-party components retain their licenses. Model weights and external drivers
 are not included in this source repository.
+
+### Local rendered clips
+
+The desktop **Render clip** workspace exports local videos using frame-by-frame GhostV2 face replacement, full-precision inference, and optional GFPGAN detail restoration. Install FFmpeg/FFprobe separately and select an installed adult reference. Choose a local video (up to five minutes), then a **new** MP4 filename. Output is capped at 1080p / 30 FPS, retains the source motion and audio (AAC re-encoded), and strips source metadata. Cancel or Escape stops the job. No camera or microphone starts during export and no clip is uploaded.
+
+This is face replacement: hair, body, clothing, and scene remain from the input. Undetected-face frames are black. Restoration may alter facial details, and seams, flicker, and imperfect identity remain possible. Rendered export is not a claim of Higgsfield-equivalent quality or live conferencing performance.
