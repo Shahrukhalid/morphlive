@@ -38,7 +38,7 @@ def blend_face(rgb, generated, matrix, points):
     upper=(mask>0)&(np.arange(shape[0])[:,None]<local[1,1])&(alpha[...,0]>.95)
     if np.count_nonzero(upper)>=32:
         delta=np.median(target[upper],axis=0)-np.median(warped[upper],axis=0)
-        warped=np.clip(warped.astype(np.float32)+np.clip(delta,-24,24)*.5,0,255)
+        warped=np.clip(warped.astype(np.float32)+np.clip(delta,-30,30)*.5,0,255)
     # Match illumination near the seam only; the fully replaced interior does
     # not inherit the original mouth or facial-hair shading.
     sigma=max(1,radius*2*64/max(shape))

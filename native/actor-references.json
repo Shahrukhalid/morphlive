@@ -18,6 +18,15 @@
     "source": "https://commons.wikimedia.org/wiki/File:Brad_Pitt-69858.jpg"
   },
   {
+    "id": "cillian-murphy",
+    "url": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Cillian_Murphy_at_the_London_premier_of_Steve_in_September_2025_%28cropped%29.jpg",
+    "sha256": "bbcb8f99a822552fff32437550151ea0d95c0d6621efc33d80a3ef8de312f6ec",
+    "credit": "Netflix / StillMoving.Net",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Cillian_Murphy_at_the_London_premier_of_Steve_in_September_2025_(cropped).jpg"
+  },
+  {
     "id": "deepika-padukone",
     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/d3/Deepika_Padukone_2025_%281%29.png/960px-Deepika_Padukone_2025_%281%29.png",
     "sha256": "b0e0dd88c2cd2cbef6ac869152d824682122588917b59b4768ae507d80e364b0",
@@ -27,6 +36,15 @@
     "source": "https://commons.wikimedia.org/wiki/File:Deepika_Padukone_2025_(1).png"
   },
   {
+    "id": "emma-stone",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/23/Emma_Stone_at_the_2025_Venice_Film_Festival-6313_%28cropped%29.jpg/960px-Emma_Stone_at_the_2025_Venice_Film_Festival-6313_%28cropped%29.jpg",
+    "sha256": "39d80dba84969f42c5a8c533b1911e1c8a558bb6d77c920f5cedcaef573b9a0d",
+    "credit": "Harald Krichel",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Emma_Stone_at_the_2025_Venice_Film_Festival-6313_(cropped).jpg"
+  },
+  {
     "id": "hrithik-roshan",
     "url": "https://upload.wikimedia.org/wikipedia/commons/9/9c/Hrithik_at_Rado_launch.jpg",
     "sha256": "fc7f34722137ee38198f05661f4e9205fe2d79ca21df2423c59d9c0375fa3da3",
@@ -34,6 +52,15 @@
     "license": "CC BY 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Hrithik_at_Rado_launch.jpg"
+  },
+  {
+    "id": "keanu-reeves",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg/960px-Keanu_Reeves_at_TIFF_2025_02_%28Cropped%29.jpg",
+    "sha256": "949e0a2e8eb19ccdce930d9007a58f4ffe8949f1513b2bab950f97c895bd917e",
+    "credit": "Gabriel Hutchinson / WikiPortraits",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Keanu_Reeves_at_TIFF_2025_02_(Cropped).jpg"
   },
   {
     "id": "leonardo-dicaprio",
@@ -54,6 +81,24 @@
     "source": "https://commons.wikimedia.org/wiki/File:Margot_Robbie_Wuthering_Heights_premiere_(cropped).jpg"
   },
   {
+    "id": "salma-hayek",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/MKr383631_Salma_Hayek_%28Women_In_Motion%2C_Cannes_2025%29_crop.jpg/960px-MKr383631_Salma_Hayek_%28Women_In_Motion%2C_Cannes_2025%29_crop.jpg",
+    "sha256": "c232a13fd87ce3ec79bb420d677196550b384a1d5576c947794dc11b9e5afdd6",
+    "credit": "Martin Kraft (photo.martinkraft.com)",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:MKr383631_Salma_Hayek_(Women_In_Motion,_Cannes_2025)_crop.jpg"
+  },
+  {
+    "id": "satya-nadella",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/78/MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg/960px-MS-Exec-Nadella-Satya-2017-08-31-22_%28cropped%29.jpg",
+    "sha256": "d5384722b9bf997f4cfce9980e6e538a0795471a2ca2e6fa4be2ab3f80164e3c",
+    "credit": "Brian Smale / Microsoft",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:MS-Exec-Nadella-Satya-2017-08-31-22_(cropped).jpg"
+  },
+  {
     "id": "scarlett-johansson",
     "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/ad/Scarlett_Johansson-8588.jpg/960px-Scarlett_Johansson-8588.jpg",
     "sha256": "17174982682ce05455887244c38cfed20915769e7c99512be3f427d8039092f6",
@@ -70,6 +115,15 @@
     "license": "CC BY 3.0",
     "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
     "source": "https://commons.wikimedia.org/wiki/File:Shah_Rukh_Khan_graces_the_launch_of_the_new_Santro.jpg"
+  },
+  {
+    "id": "tim-cook",
+    "url": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/Tim_Cook_in_New_York_City_-_2026_%28cropped%29.jpg/960px-Tim_Cook_in_New_York_City_-_2026_%28cropped%29.jpg",
+    "sha256": "a73c65d83072488feec056cfa6fb72ede5069c23b7ed169a64d6e3565cd3a468",
+    "credit": "Dati Bendo / European Union",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "source": "https://commons.wikimedia.org/wiki/File:Tim_Cook_in_New_York_City_-_2026_(cropped).jpg"
   },
   {
     "id": "tom-cruise",

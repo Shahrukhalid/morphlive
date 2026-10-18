@@ -37,11 +37,12 @@ def main():
                         raise ValueError('Unknown reference')
                     if engine is not None:
                         raise ValueError('Engine already running')
+                    widescreen = request.get('widescreen') is not False
                     if request.get('backend')=='faceswap':
                         from faceswap import FaceSwapEngine
-                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is True)
+                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is not False)
                     else:
-                        engine = PortraitEngine(reference)
+                        engine = PortraitEngine(reference, widescreen=widescreen)
                     send({'ok': True, 'device': engine.wrapper.device})
                 elif op == 'frame' and engine is not None:
                     encoded = request.get('jpeg', '')

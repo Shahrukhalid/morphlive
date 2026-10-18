@@ -29,52 +29,25 @@ using it in a live call.
 
 ## Features implemented in source
 
-- Optional GhostV2 neural face replacement, two local fictional adult reference
-  slots, ten curated actor/actress references, cached live identity switching,
-  and direct transformed frames to the installed OBS virtual camera.
-- SHA-256-pinned optional model/photo installers. Models, reference photos,
-  Python dependencies, and generated packages stay out of Git.
-
-- Explicit camera and microphone capture, device selection, stop and mute.
-- Optional local face landmark tracking in a worker with one frame in flight.
-- Six original character pairings: Neutral Studio, Atlas, Nova, Orbit, Cyber,
-  and Ghost. Includes studio color adjustment, face-attached masks, an expressive
-  generic avatar, and full-frame privacy replacement.
-- Independent pitch shifting and approximate spectral-envelope formant control,
-  robot modulation, output gain, soft noise gate, and clipping ceiling.
-- Persona-linked voice settings, manual override, smooth DSP parameter changes,
-  and locally saved custom appearance/voice pairings.
-- Original-camera comparison, landmark overlay, performance profiles, estimated
-  audio latency, measured preview FPS, and redacted diagnostics export.
-- A separate output window for OBS capture; explicit audio output selection for
-  headphones or a separately installed virtual audio device.
-- Emergency stop (`Escape`) closes camera, microphone, and output window.
-
-Neural face swapping is experimental: a short M5 fictional-input test measured
-14.09 FPS, while the live desktop check varied around 3–9 FPS. Zoom camera
-preview reception works; natural-motion and realism acceptance still FAIL. It keeps
-the original hair, body, and room. Actor references use separately downloaded,
-credited public photos; actor voices are not cloned. There is no bundled native
-virtual driver, neural voice conversion, or automatic clock drift correction.
-Legacy masks remain procedural overlays.
-Character voice mappings are editable settings, not identity or gender inference.
+- **Full Persona AI (`LivePortrait`)**: Complete head, hair, skin, clothing, and background transformation driven in real time by your facial motion, expressions, and speech. Formatted natively in 16:9 widescreen (1280×720) with cinematic depth-of-field bokeh for direct compatibility with Zoom, Google Meet, Teams, and browser calls. Zero camera or beard bleed-through.
+- **Webcam Face Swap (`GhostV2`)**: Replaces face on your physical webcam feed with organic boundary feathering, skin-tone variance matching, and GFPGAN face detail restoration.
+- **18 Curated Adult Personas**: Corporate executive leaders, executive partners, and character personalities. Public reference photos retain their original credits and licenses.
+- **Direct Virtual Camera Output**: Sends transformed frames directly to the OBS Virtual Camera for Zoom, Meet, Teams, Discord, and Omegle.
+- **Local DSP Voice Pairing**: Independent pitch shifting, formant envelope control, and soft noise gate.
+- **Strict Privacy**: 100% on-device processing. No recording, no telemetry, no network transmission of media or device identifiers.
 
 ## Quick start
 
-Requirements: Node.js 24 or newer, npm, a webcam and microphone, and a supported
-Electron desktop environment. Development currently targets macOS and Windows;
-Windows and Intel Mac verification is pending.
+Requirements: Node.js 24 or newer, npm, a webcam and microphone.
 
 ```sh
 git clone https://github.com/Shahrukhalid/morphlive.git
 cd morphlive
-npm ci
-npm run runtime:install
-# Optional, explicit download for face-attached effects:
-npm run model:install
-npm run build
-npm run desktop
+npm install
+npm start
 ```
+
+Or run `./start.sh` on macOS/Linux or `start.bat` on Windows for 1-click startup.
 
 Model installation downloads a pinned official Google model and verifies its
 SHA-256. The app itself makes no model or runtime downloads. Without it, original

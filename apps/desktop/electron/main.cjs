@@ -52,7 +52,7 @@ app.whenReady().then(() => {
       }
       return {references:catalogStatus()};
     }
-    if(request.op==='start'&&reference&&['portrait','faceswap'].includes(request.backend)){try{return await neural.start(reference.id,request.backend,request.enhance===true);}catch(error){neural.stop();throw error;}}
+    if(request.op==='start'&&reference&&['portrait','faceswap'].includes(request.backend)){try{return await neural.start(reference.id,request.backend,request.enhance===true,request.widescreen!==false);}catch(error){neural.stop();throw error;}}
     if(request.op==='frame'&&typeof request.jpeg==='string'&&request.jpeg.length<=1_400_000)return neural.request({op:'frame',jpeg:request.jpeg});
     if(request.op==='virtual'&&typeof request.enabled==='boolean')return neural.request({op:'virtual',enabled:request.enabled});
     if(request.op==='calibrate')return neural.request({op:'calibrate'});
