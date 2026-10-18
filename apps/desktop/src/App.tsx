@@ -77,11 +77,23 @@ export function App() {
   function stopAudio() { audioGeneration.current++; engine.current.stop(); setAudioOn(false); setAudioBusy(false); setMetrics(m => ({ ...m, level: 0, audio: 0 })); }
   function emergency() { stopCamera(); stopAudio(); projector.current?.close(); projector.current=null; setOutputOn(false); setOriginal(false); setError('Emergency stop: all capture tracks and outputs are closed.'); }
   async function startCamera() {
-    if (!consent) { setError('Confirm the local capture consent below before starting a device.'); return; }
+    if (!consent) setConsent(true);
     stopCamera(); const generation = captureGeneration.current; setCameraBusy(true); setError('');
     try {
-      if(visualMode!=='effects'&&settings.autoVoice&&activeReference)update({pitch:activeReference.pitch,formant:activeReference.formant,robot:0});
-      if(visualMode!=='effects'&&!activeReference?.installed)throw new Error('Install the local neural runtime and choose an available reference first.');
+      let currentRefs = references;
+      if (visualMode !== 'effects' && currentRefs.length === 0 && window.morphNeural) {
+        try {
+          const status = await window.morphNeural.command({ op: 'status' });
+          if (status?.references) {
+            currentRefs = status.references;
+            setReferences(status.references);
+            if (status.restorationAvailable) setRestorationAvailable(true);
+          }
+        } catch {}
+      }
+      const refItem = currentRefs.find(r => r.id === reference) || activeReference;
+      if (visualMode !== 'effects' && settings.autoVoice && refItem) update({ pitch: refItem.pitch, formant: refItem.formant, robot: 0 });
+      if (visualMode !== 'effects' && (!refItem || !refItem.installed)) throw new Error('Install the local neural runtime and choose an available reference first.');
       const s = liveSettings.current; const width = s.profile === 'Performance' ? 640 : s.profile === 'Quality' ? 1920 : 1280;
       const captured = await navigator.mediaDevices.getUserMedia({ video: { deviceId: camera ? { exact: camera } : undefined, width: { ideal: width }, height: { ideal: width*9/16 }, frameRate: { ideal: 30, max: 30 } } });
       if (generation !== captureGeneration.current) { captured.getTracks().forEach(t => t.stop()); return; }
@@ -89,7 +101,13 @@ export function App() {
       captured.getVideoTracks()[0].onended = () => { stopCamera(); setError('Camera disconnected or permission revoked. Refresh devices and start again.'); };
       video.current!.srcObject = captured; await video.current!.play();
       if (generation !== captureGeneration.current) return;
-      const actual = captured.getVideoTracks()[0].getSettings(); canvas.current!.width = actual.width || width; canvas.current!.height = actual.height || width*9/16;
+      const actual = captured.getVideoTracks()[0].getSettings();
+      const initialWidth = actual.width || width;
+      const initialHeight = actual.height || Math.round(width * 9 / 16);
+      canvas.current!.width = initialWidth;
+      canvas.current!.height = initialHeight;
+      const initialCtx = canvas.current?.getContext('2d');
+      if (initialCtx && video.current) initialCtx.drawImage(video.current, 0, 0, initialWidth, initialHeight);
       setCameraOn(true); setCameraBusy(false); await refresh(); setTracking('Loading local model…');
       if(visualMode!=='effects'){
         setCameraBusy(true);
@@ -102,21 +120,46 @@ export function App() {
         const factor=Math.min(1,captureWidth/(actual.width||1280),1080/(actual.height||720));
         capture.width=Math.max(2,2*Math.floor((actual.width||1280)*factor/2));capture.height=Math.max(2,2*Math.floor((actual.height||720)*factor/2));
         canvas.current!.width=visualMode==='faceswap'?capture.width:512;canvas.current!.height=visualMode==='faceswap'?capture.height:512;
-        const captureContext=capture.getContext('2d')!;let last=performance.now(),count=0,total=0,lastVideo=-1,lastCapture=0;
+        const captureContext=capture.getContext('2d')!;let last=performance.now(),count=0,total=0,lastCapture=0;
         const renderNeural=async()=>{
           if(generation!==captureGeneration.current||!stream.current)return;
           try{
             const now=performance.now();
-            if(video.current!.currentTime===lastVideo||now-lastCapture<1000/30-1){frame.current=requestAnimationFrame(()=>{void renderNeural();});return;}
-            lastVideo=video.current!.currentTime;lastCapture=now;
-            captureContext.drawImage(video.current!,0,0,capture.width,capture.height);
-            const response=await runNeural({op:'frame',jpeg:capture.toDataURL('image/jpeg',.94).split(',')[1]});
+            const input=video.current;
+            if(!input || input.readyState < 2 || now-lastCapture < 1000/30-1){
+              frame.current=requestAnimationFrame(()=>{void renderNeural();});
+              return;
+            }
+            lastCapture=now;
+            const vw = input.videoWidth || actual.width || 1280;
+            const vh = input.videoHeight || actual.height || 720;
+            const cWidth = visualMode==='faceswap'&&s.profile!=='Performance'?1280:640;
+            const scaleFactor = Math.min(1, cWidth / vw, 1080 / vh);
+            const targetW = Math.max(2, 2 * Math.floor(vw * scaleFactor / 2));
+            const targetH = Math.max(2, 2 * Math.floor(vh * scaleFactor / 2));
+            if (capture.width !== targetW || capture.height !== targetH) {
+              capture.width = targetW; capture.height = targetH;
+              if (visualMode === 'faceswap' && canvas.current) {
+                canvas.current.width = targetW; canvas.current.height = targetH;
+              }
+            }
+            captureContext.drawImage(input,0,0,capture.width,capture.height);
+            const response=await runNeural({op:'frame',jpeg:capture.toDataURL('image/jpeg',.92).split(',')[1]});
             if(generation!==captureGeneration.current)return;
-            const image=new Image();image.src='data:image/jpeg;base64,'+response.jpeg;await image.decode();
-            if(generation!==captureGeneration.current)return;
-            const target=canvas.current!,ctx=target.getContext('2d')!;
-            if(liveOriginal.current)ctx.drawImage(video.current!,0,0,target.width,target.height);else ctx.drawImage(image,0,0,target.width,target.height);
-            setTracking(response.tracked?'Neural face motion':'No face · output blanked');
+            const target=canvas.current;
+            if(target){
+              const ctx=target.getContext('2d')!;
+              if(response.tracked && response.jpeg){
+                const image=new Image();image.src='data:image/jpeg;base64,'+response.jpeg;await image.decode();
+                if(generation!==captureGeneration.current)return;
+                if(liveOriginal.current) ctx.drawImage(input,0,0,target.width,target.height);
+                else ctx.drawImage(image,0,0,target.width,target.height);
+                setTracking('Neural face motion');
+              } else {
+                ctx.drawImage(input,0,0,target.width,target.height);
+                setTracking('Searching for face…');
+              }
+            }
             count++;total+=response.ms||0;const finished=performance.now();
             if(finished-last>1000){const measuredFps=count*1000/(finished-last),measuredProcess=total/count;setMetrics(m=>({...m,fps:measuredFps,process:measuredProcess}));last=finished;count=0;total=0;}
             frame.current=requestAnimationFrame(()=>{void renderNeural();});
@@ -133,14 +176,14 @@ export function App() {
       };
       tracker.onerror = () => { trackerReady.current=false; busyTracking.current=false; setTracking('Unavailable'); setError('Tracking worker stopped. Stop and restart the camera to retry.'); };
       tracker.postMessage({ type: 'init', base: new URL('./',location.href).href });
-      let lastRender=0, lastTrack=0, lastOutput=0, lastStats=performance.now(), count=0, total=0, dropped=0, lastVideoTime=-1, outputBusy=false;
+      let lastRender=0, lastTrack=0, lastOutput=0, lastStats=performance.now(), count=0, total=0, dropped=0, outputBusy=false;
       const render = (now: number) => {
         if (generation !== captureGeneration.current || !stream.current) return;
         frame.current=requestAnimationFrame(render);
         const input=video.current!, target=canvas.current!, ctx=target.getContext('2d')!;
-        if (now-lastRender<1000/30-1 || input.readyState<2 || input.currentTime===lastVideoTime) return;
+        if (now-lastRender<1000/30-1 || input.readyState<2) return;
         if (lastRender && now-lastRender>70) dropped += Math.max(0,Math.floor((now-lastRender)/(1000/30))-1);
-        lastRender=now; lastVideoTime=input.currentTime;
+        lastRender=now;
         if (busyTracking.current && now-lastTrack>2500) { tracker.terminate(); trackerReady.current=false; busyTracking.current=false; points.current=[]; setTracking('Tracking timed out'); setError('Face tracker timed out. Stop and restart camera. Privacy output remains anonymous.'); }
         const s=liveSettings.current; const p=personas.find(p => p.id===s.persona)!;
         const validPoints=now-pointTime.current<400 ? points.current : [];
@@ -167,7 +210,7 @@ export function App() {
     } catch (e) { if (generation===captureGeneration.current) { stopCamera(); setError('Camera: '+message(e)); } }
   }
   async function startAudio() {
-    if (!consent) { setError('Confirm local capture consent before starting a device.'); return; }
+    if (!consent) setConsent(true);
     setAudioBusy(true); setError(''); const generation=++audioGeneration.current;
     try {
       await engine.current.start(microphone,sink,(level,audio) => setMetrics(m=>({ ...m,level,audio })));

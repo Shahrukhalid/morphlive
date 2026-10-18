@@ -43,7 +43,9 @@ def main():
             ok,jpeg=cv2.imencode('.jpg',image);assert ok
             return command({'op':'frame','jpeg':base64.b64encode(jpeg).decode('ascii')})
         result=frame(source);assert result['tracked']
-        print('Neural stdio frame PASS:',result['ms'],'ms',flush=True)
+        result_wide=frame(cv2.resize(source,(1280,720)));assert result_wide['tracked']
+        result_scaled=frame(cv2.resize(source,(2000,1200)));assert result_scaled['tracked']
+        print('Neural stdio frame PASS:',result['ms'],'ms (640p, 720p, oversized dynamic scaling)',flush=True)
         if args.virtual:
             assert command({'op':'virtual','enabled':True})['virtual']
             print('Virtual camera sender ACTIVE with fictional input',flush=True)

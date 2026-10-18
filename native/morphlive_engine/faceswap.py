@@ -58,8 +58,15 @@ class FaceSwapEngine:
                                       input_is_latent=True,different_w=True,narrow=1,sft_half=True)
             self.restorer.load_state_dict(load_file(str(weights/'restorer.safetensors')),strict=True)
             self.restorer=self.restorer.to(self.device,torch.float32).eval()
+        model_paths = [
+            ROOT / 'apps/desktop/public/models/face_landmarker.task',
+            ROOT / 'dist/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'apps/desktop/public/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'dist/models/face_landmarker.task',
+        ]
+        model_file = next((p for p in model_paths if p.exists()), model_paths[0])
         self.detector=mp.tasks.vision.FaceLandmarker.create_from_options(mp.tasks.vision.FaceLandmarkerOptions(
-            base_options=mp.tasks.BaseOptions(model_asset_path=str(ROOT/'apps/desktop/public/models/face_landmarker.task')),
+            base_options=mp.tasks.BaseOptions(model_asset_path=str(model_file)),
             running_mode=mp.tasks.vision.RunningMode.IMAGE,num_faces=1))
         if reference not in REFERENCE_IDS:
             raise ValueError('Unknown local reference')
@@ -123,8 +130,7 @@ class FaceSwapEngine:
     def process(self,rgb):
         start=time.perf_counter();aligned=self.align(rgb)
         if aligned is None:
-            output=np.zeros_like(rgb)
-            return output,(time.perf_counter()-start)*1000,False
+            return rgb,(time.perf_counter()-start)*1000,False
         target,matrix,points=aligned
         with torch.inference_mode():
             generated,_=self.G(self.tensor(target),self.identity)

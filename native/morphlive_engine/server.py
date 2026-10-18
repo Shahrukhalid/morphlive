@@ -50,8 +50,11 @@ def main():
                     raw = base64.b64decode(encoded, validate=True)
                     check_jpeg(raw)
                     bgr = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
-                    if bgr is None or bgr.shape[0] > 1080 or bgr.shape[1] > 1920:
-                        raise ValueError('Invalid frame dimensions')
+                    if bgr is None:
+                        raise ValueError('Invalid frame decoding')
+                    if bgr.shape[0] > 1080 or bgr.shape[1] > 1920:
+                        scale = min(1920 / bgr.shape[1], 1080 / bgr.shape[0])
+                        bgr = cv2.resize(bgr, (round(bgr.shape[1] * scale), round(bgr.shape[0] * scale)))
                     rgb, ms, tracked = engine.process(cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB))
                     last_shape=rgb.shape
                     if virtual is not None:

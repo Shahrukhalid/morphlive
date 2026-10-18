@@ -49,7 +49,13 @@ class PortraitEngine:
             if os.environ.get('MORPHLIVE_FP16') == '1' and self.wrapper.device == 'mps':
                 self.wrapper.inference_cfg.flag_use_half_precision = True
                 self.wrapper.inference_ctx = lambda: torch.autocast(device_type='mps', dtype=torch.float16)
-        model = ROOT / 'apps/desktop/public/models/face_landmarker.task'
+        model_paths = [
+            ROOT / 'apps/desktop/public/models/face_landmarker.task',
+            ROOT / 'dist/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'apps/desktop/public/models/face_landmarker.task',
+            Path(__file__).resolve().parents[2] / 'dist/models/face_landmarker.task',
+        ]
+        model = next((p for p in model_paths if p.exists()), model_paths[0])
         self.detector = mp.tasks.vision.FaceLandmarker.create_from_options(
             mp.tasks.vision.FaceLandmarkerOptions(
                 base_options=mp.tasks.BaseOptions(model_asset_path=str(model)),
