@@ -1,7 +1,9 @@
 # Architecture
 
 Electron serves a packaged React/TypeScript renderer from `morph://studio`.
-It uses a sandboxed, isolated renderer with no Node access or preload IPC.
+It uses a sandboxed, isolated renderer with no Node access. A narrow preload
+exposes only load/save of schema-validated preferences at one fixed app-data file.
+It does not accept paths, commands, or device/media data.
 The custom protocol only resolves files inside dist. Network requests outside
 local packaged schemes are blocked by the Electron session and renderer CSP.
 
@@ -36,7 +38,8 @@ correction are not. Audio latency includes algorithm delay, AudioContext-reporte
 base/output latency, and configured delay. It excludes capture-driver, OBS,
 virtual-device, network, and conferencing latency.
 
-Settings use a validated allowlist in localStorage. Device IDs and labels are not
+Settings use a validated allowlist, localStorage, and a schema-validated atomic
+native preferences file in the OS app-data directory. Device IDs and labels are not
 persisted. Capture generation tokens prevent delayed permission results from
 restarting stopped pipelines. Emergency stop cancels animation, terminates the
 worker, closes tracks and audio context, and closes the projector.

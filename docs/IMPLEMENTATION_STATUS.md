@@ -5,7 +5,7 @@ Version 0.1.0 is an experimental preview, not a completed production application
 ## Implemented and checked
 
 - Strict TypeScript production build: PASS.
-- Ten automated audio/security/privacy regression checks: PASS.
+- Thirteen automated audio/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.
 - Dependency audit after downloader override: zero reported vulnerabilities.
 - Unsigned arm64 .app packaging and local application launch: PASS.
@@ -27,7 +27,9 @@ Version 0.1.0 is an experimental preview, not a completed production application
 ## Implemented with partial verification
 
 - Manual voice override, gating, robot tone, smoothed transitions, custom presets,
-  settings validation/persistence, model checksum verification, and diagnostics.
+  model checksum verification, and diagnostics. Native preferences have bounded
+  schema validation and atomic writes. Actual quit/relaunch restored Nova and its
+  pitch/formant values: PASS after correcting startup sender validation.
 - Device enumeration, permissions, generation-based cancellation, stop recovery,
   tracking timeout, stale landmark expiry, and Auto resolution fallback.
 - Output window uses one acknowledged frame in flight and a stale-feed blackout.

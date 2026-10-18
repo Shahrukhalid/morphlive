@@ -3,6 +3,8 @@
 Automated: `npm test` checks FFT round trip, pitch frequency and unchanged duration,
 formant controls preserving fundamental, silence, mute, clipping, invalid inputs,
 rapid changes with bounded buffers, and privacy/security source regressions.
+Native preference tests also reject malformed, oversized, unknown-key, and
+out-of-range payloads and preserve bounded custom pairings.
 These tests do not establish naturalness, actual device latency, or call quality.
 `npm run build` runs strict TypeScript checks and production bundling.
 `npm run check:privacy` inspects source and available Git commit diffs for token,

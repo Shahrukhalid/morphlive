@@ -14,6 +14,8 @@ count as passing external integration tests.
   reception only. This is not a virtual camera receiver test.
 - Microphone: physical input → AudioWorklet → silent AudioContext sink; startup
   and ongoing processing PASS. Audible voice quality NOT TESTED.
+- Preferences: quit/relaunch restored the selected Nova persona and voice settings;
+  PASS after native persistence fix.
 - Emergency stop: camera shutdown and output closure exercised; PASS for observed
   local controls. External receiver freeze behavior NOT TESTED.
 
