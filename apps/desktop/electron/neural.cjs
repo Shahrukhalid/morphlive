@@ -11,7 +11,7 @@ class NeuralBridge {
     if(this.pending){clearTimeout(this.pending.timer);this.pending.reject(new Error('Neural engine stopped'));this.pending=null;}
     if(child){child.stdin.end(JSON.stringify({op:'stop'})+'\n');const timer=setTimeout(()=>child.kill('SIGKILL'),1000);timer.unref();child.once('exit',()=>clearTimeout(timer));}
   }
-  async start(reference,backend='portrait',enhance=false,widescreen=true) {
+  async start(reference,backend='faceswap',enhance=false,widescreen=true) {
     this.stop();
     const python=path.join(this.root,'.venv',process.platform==='win32'?'Scripts/python.exe':'bin/python');
     if(!this.exists(python))throw new Error('Install the local neural runtime, then select its project folder.');

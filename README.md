@@ -4,7 +4,7 @@
 
 ### Your local reality studio.
 
-Live camera effects. Original face-tracked characters. A voice of your own.
+Live camera effects. Experimental face replacement. Local voice effects.
 
 ![Status: experimental preview](https://img.shields.io/badge/status-experimental_preview-b7a0fa)
 ![License: MIT](https://img.shields.io/badge/license-MIT-84e7cf)
@@ -12,29 +12,31 @@ Live camera effects. Original face-tracked characters. A voice of your own.
 
 </div>
 
-MorphLive is a local-first Electron desktop application that processes camera
-and microphone input entirely on-device. It supports two primary AI engines:
-**Full Persona AI** (`LivePortrait`) for complete head, hair, skin, clothing, and
-background transformation in native 16:9 widescreen with cinematic bokeh, and
-**Webcam Face Swap** (`GhostV2`) for swapping faces into your existing camera feed
-with GFPGAN 512×512 face detail restoration. Output streams directly to **OBS Virtual Camera**
-for Zoom, Google Meet, Microsoft Teams, and browser calls. No account, API key,
-cloud processing, recording, or telemetry is required.
+MorphLive defaults to **Live webcam face replacement (`GhostV2`)**. It processes
+successive camera frames and replaces the face in your current scene. A reference
+portrait supplies the target identity; it is not animated as the output video.
+Your current hair, body, clothing, and surroundings remain in the camera frame.
+Optional GFPGAN restoration improves some facial detail at a substantial speed cost
+and starts disabled.
 
-**This is a development preview.** Automated DSP, native-bridge lifecycle, build,
-and privacy checks pass. Direct 16:9 widescreen virtual camera delivery and local
-face tracking run on Apple Silicon macOS and Windows. Audible quality, virtual
-microphone routes, and meeting transmission across calling platforms are documented
-in [implementation status](docs/IMPLEMENTATION_STATUS.md) and [compatibility](docs/COMPATIBILITY.md).
+**Full appearance transformation is not implemented.** The current model changes
+inner facial features, leaves beard/hair/head shape unchanged, and can paint over
+hands crossing the face. These are known failures, not camera-setting problems.
+The obsolete still-photo animation backend has been removed from the active source.
+
+**This is a development preview.** Processing stays local. Indistinguishable visual
+quality, sustained real-time performance, Windows hardware support, and meeting
+transmission are not established. Earlier Zoom preview reception is documented in
+[implementation status](docs/IMPLEMENTATION_STATUS.md) and
+[compatibility](docs/COMPATIBILITY.md).
 
 ## Features implemented in source
 
-- **Full Persona AI (`LivePortrait`)**: Complete head, hair, skin, clothing, and background transformation driven in real time by your facial motion, expressions, and speech. Formatted natively in 16:9 widescreen (1280×720) with cinematic depth-of-field bokeh for direct compatibility with Zoom, Google Meet, Teams, and browser calls. Zero camera or beard bleed-through.
-- **Webcam Face Swap (`GhostV2`)**: Replaces face on your physical webcam feed with organic boundary feathering, skin-tone variance matching, and GFPGAN face detail restoration.
+- **Live webcam face replacement (`GhostV2`, default)**: Replaces facial features in each camera frame, retaining the live scene. It does not animate a still photograph as the output.
 - **18 Curated Adult Personas**: Corporate executive leaders, executive partners, and character personalities. Public reference photos retain their original credits and licenses.
 - **Direct Virtual Camera Output**: Sends transformed frames directly to the OBS Virtual Camera for Zoom, Meet, Teams, Discord, and Omegle.
 - **Local DSP Voice Pairing**: Independent pitch shifting, formant envelope control, and soft noise gate.
-- **Strict Privacy**: 100% on-device processing. No recording, no telemetry, no network transmission of media or device identifiers.
+- **Local processing**: No capture uploads or telemetry. Explicit local clip export is available; live capture is not recorded.
 
 ## Quick start
 
@@ -146,3 +148,9 @@ No real-person face or voice assets are included.
 Original MorphLive source and procedural character artwork are MIT licensed.
 Third-party components retain their licenses. Model weights and external drivers
 are not included in this source repository.
+
+### Local rendered clips
+
+The desktop **Render clip** workspace exports local videos using frame-by-frame GhostV2 face replacement, full-precision inference, and optional GFPGAN detail restoration. Install FFmpeg/FFprobe separately and select an installed adult reference. Choose a local video (up to five minutes), then a **new** MP4 filename. Output is capped at 1080p / 30 FPS, retains the source motion and audio (AAC re-encoded), and strips source metadata. Cancel or Escape stops the job. No camera or microphone starts during export and no clip is uploaded.
+
+This is face replacement: hair, body, clothing, and scene remain from the input. Undetected-face frames are black. Restoration may alter facial details, and seams, flicker, and imperfect identity remain possible. Rendered export is not a claim of Higgsfield-equivalent quality or live conferencing performance.

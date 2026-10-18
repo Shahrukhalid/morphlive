@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {EventEmitter} from 'node:events';
+import {createRequire} from 'node:module';
+const {ClipRenderer}=createRequire(import.meta.url)('../apps/desktop/electron/render.cjs');
+function fixture(){const children=[];const renderer=new ClipRenderer('/runtime','/render.py',{spawn:()=>{const child=new EventEmitter();child.stdout=new EventEmitter();child.stdout.setEncoding=()=>{};child.stderr=new EventEmitter();child.stdin=new EventEmitter();child.stdin.end=data=>{child.config=JSON.parse(data);};child.kill=signal=>{child.signal=signal;};children.push(child);return child;}});return {renderer,children};}
+test('render serializes one fixed worker job and rejects overlap',()=>{const {renderer,children}=fixture();renderer.start({input:'/input.mp4',output:'/output.mp4',reference:'fictional-female'});assert.equal(renderer.busy,true);assert.equal(children[0].config.reference,'fictional-female');assert.throws(()=>renderer.start({}));children[0].stdout.emit('data','{"state":"rendering","frames":2,"total":10}\n');assert.equal(renderer.state.frames,2);});
+test('cancel ignores late progress and releases job only after close',()=>{const {renderer,children}=fixture();renderer.start({});renderer.cancel();assert.equal(children[0].signal,'SIGTERM');children[0].stdout.emit('data','{"state":"completed"}\n');assert.equal(renderer.state.state,'cancelling');children[0].emit('close',1);assert.equal(renderer.state.state,'cancelled');renderer.start({});children[0].stdout.emit('data','{"state":"failed"}\n');assert.equal(renderer.state.state,'loading');children[1].emit('close',1);assert.equal(renderer.state.state,'failed');});
+test('oversized worker response stops the worker',()=>{const {renderer,children}=fixture();renderer.start({});children[0].stdout.emit('data','x'.repeat(16385));assert.equal(children[0].signal,'SIGTERM');children[0].emit('close',1);assert.equal(renderer.state.state,'cancelled');});

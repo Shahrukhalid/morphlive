@@ -29,7 +29,8 @@ def main():
             raise RuntimeError(response.get('error','Native probe failed'))
         return response
     try:
-        command({'op':'start','backend':'faceswap','reference':'fictional-female','enhance':args.restore})
+        started=command({'op':'start','reference':'fictional-female','enhance':args.restore})
+        assert started['backend']=='faceswap','Default engine must replace live camera frames'
         catalog=json.loads((ROOT/'native/references.json').read_text())
         count=0
         for item in catalog:
@@ -43,6 +44,14 @@ def main():
             ok,jpeg=cv2.imencode('.jpg',image);assert ok
             return command({'op':'frame','jpeg':base64.b64encode(jpeg).decode('ascii')})
         result=frame(source);assert result['tracked']
+        # Distinct live-frame corner markers must survive outside the face.
+        # A portrait-animation output would retain the reference-photo scene.
+        for color in [(15,180,35),(180,20,190)]:
+            marked=source.copy();marked[:32,:32]=color
+            swapped=frame(marked);assert swapped['tracked']
+            decoded=cv2.imdecode(np.frombuffer(base64.b64decode(swapped['jpeg']),np.uint8),cv2.IMREAD_COLOR)
+            assert np.max(np.abs(decoded[8:24,8:24].mean(axis=(0,1))-color))<8
+        print('Current-frame scene preservation PASS (not reference-photo animation)',flush=True)
         result_wide=frame(cv2.resize(source,(1280,720)));assert result_wide['tracked']
         result_scaled=frame(cv2.resize(source,(2000,1200)));assert result_scaled['tracked']
         print('Neural stdio frame PASS:',result['ms'],'ms (640p, 720p, oversized dynamic scaling)',flush=True)
@@ -56,7 +65,9 @@ def main():
                 matrix=cv2.getRotationMatrix2D((320,320),angle,1)
                 frame(cv2.warpAffine(source,matrix,(640,640)));i+=1
             assert command({'op':'virtual','enabled':False})['virtual'] is False
-        lost=frame(np.zeros_like(source));assert not lost['tracked']
+        lost=frame(np.full_like(source,37));assert not lost['tracked']
+        blank=cv2.imdecode(np.frombuffer(base64.b64decode(lost['jpeg']),np.uint8),cv2.IMREAD_COLOR)
+        assert blank is not None and blank.max()<=1,'Lost tracking must not pass original camera pixels through'
         print('Lost-face blackout PASS',flush=True)
         command({'op':'stop'});process.wait(timeout=10)
         assert process.returncode==0

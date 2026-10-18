@@ -9,7 +9,8 @@ if sys.platform=='darwin':
     ctypes.CDLL('/usr/lib/libSystem.B.dylib').pthread_set_qos_class_self_np(0x19,0)
 import cv2
 import numpy as np
-from portrait import PortraitEngine, REFERENCE_IDS
+from pathlib import Path
+REFERENCE_IDS={item["id"] for item in json.loads((Path(__file__).resolve().parents[1]/"references.json").read_text())}
 from images import check_jpeg
 
 
@@ -37,13 +38,13 @@ def main():
                         raise ValueError('Unknown reference')
                     if engine is not None:
                         raise ValueError('Engine already running')
-                    widescreen = request.get('widescreen') is not False
-                    if request.get('backend')=='faceswap':
+                    backend=request.get('backend','faceswap')
+                    if backend=='faceswap':
                         from faceswap import FaceSwapEngine
-                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is not False)
+                        engine=FaceSwapEngine(reference,enhance=request.get('enhance') is True)
                     else:
-                        engine = PortraitEngine(reference, widescreen=widescreen)
-                    send({'ok': True, 'device': engine.wrapper.device})
+                        raise ValueError('Unknown neural backend')
+                    send({'ok': True, 'device': engine.wrapper.device, 'backend': backend})
                 elif op == 'frame' and engine is not None:
                     encoded = request.get('jpeg', '')
                     if not isinstance(encoded, str) or len(encoded) > 1_400_000:
@@ -74,9 +75,6 @@ def main():
                         virtual = pyvirtualcam.Camera(width=last_shape[1], height=last_shape[0], fps=30)
                         virtual.send(np.zeros(last_shape, dtype=np.uint8))
                     send({'ok':True, 'virtual': virtual is not None})
-                elif op == 'calibrate' and engine is not None:
-                    engine.initial = None
-                    send({'ok':True})
                 elif op == 'reference' and engine is not None:
                     engine.set_reference(request.get('reference'))
                     send({'ok':True})

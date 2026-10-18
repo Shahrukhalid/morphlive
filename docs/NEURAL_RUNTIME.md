@@ -3,11 +3,16 @@
 This work is experimental. It does not yet meet the requested realistic,
 real-time face replacement and matched voice acceptance criteria.
 
-MorphLive provides two local neural transformation modes:
+MorphLive defaults to **Live webcam face replacement (`GhostV2`)**. It uses the
+BSD-licensed generator and MIT CVLFace identity model to replace the face in each
+incoming camera frame. The source photo supplies an identity embedding; the
+output scene comes from the live camera. Hair, body, clothing, and surroundings
+remain original. Detail restoration is optional and starts disabled for speed.
 
-1. **Full Persona AI (`LivePortrait`)**: An MIT-licensed neural portrait pipeline that animates the entire persona—head, hair, skin, shoulders, clothing, and background—driven in real time by your physical camera's motion, eye blinks, facial expressions, and speech. Formatted natively into 16:9 widescreen (1280×720) with cinematic depth-of-field background bokeh so video calls (Zoom, Meet, Teams, browser calls) receive a broadcast-ready widescreen feed without black bars or distortion. This mode completely prevents beard or room bleed-through.
-
-2. **Webcam Face Swap (`GhostV2`)**: BSD-licensed GhostV2 generator and MIT CVLFace identity model. It swaps facial features into your live webcam feed while keeping your body, hair, and bedroom background. MediaPipe provides alignment; source identity embeddings are cached once. Features optional GFPGAN 512×512 face detail restoration and organic boundary illumination blending.
+The obsolete photo-animation backend and its installer have been removed. The
+remaining engine replaces inner facial features only. It does not generate a
+new head, hair, beard or body, and has no reliable foreground-object occlusion
+mask. User screenshots confirm hand overwrite and visible face boundaries.
 
 ## Free local constraint
 
@@ -86,8 +91,6 @@ python3.11 scripts/install-faceswap.py --restore
 npm run model:install
 # Optional, explicit public actor photo download:
 .venv/bin/python scripts/install-actor-references.py
-# Optional slow portrait-animation backend:
-python3.11 scripts/install-neural.py
 ```
 
 The installer pins the upstream source commit and model revision, verifies all
@@ -113,8 +116,7 @@ actor is claimed. Imported replacement photos retain their own terms.
 An unavailable entry says **local reference needed**. No actor voice recording
 is included; suggested pitch/formant settings are generic DSP.
 
-Use even frontal lighting. Portrait-animation mode also offers **Recalibrate
-neutral pose** to reset its driving baseline. Face-swap mode has an optional
+Use even frontal lighting. Face-swap mode has an optional
 **Face detail restoration** setting, available after installing its model; it
 substantially reduces speed. Balanced/Quality capture retains up to 1280 pixels
 wide; Performance uses up to 640. Both video JPEG passes use higher quality
@@ -143,10 +145,6 @@ camera's advertised format.
   The author identifies its CVLFace identity model as MIT. The original
   InsightFace/ArcFace weights are not selected or downloaded.
 
-- [Official LivePortrait source](https://github.com/KlingAIResearch/LivePortrait)
-  at `9b294b3d0536135442ea73cb01e6cb3ca7029dd3`, MIT.
-- [Official human weights and model card](https://huggingface.co/KlingTeam/LivePortrait)
-  at `82a4fa6735ca58432b6ce39301b4b9ee066dea47`, marked MIT.
 - [pyvirtualcam documentation](https://github.com/letmaik/pyvirtualcam), GPL-2.0.
   It is an optional separately installed Python dependency and is not included
   in the MIT application package. Review distribution obligations before

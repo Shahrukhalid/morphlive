@@ -1,60 +1,30 @@
 # Architecture
 
-Electron serves a packaged React/TypeScript renderer from `morph://studio`.
-It uses a sandboxed, isolated renderer with no Node access. A narrow preload
-exposes only load/save of schema-validated preferences at one fixed app-data file.
-It does not accept paths, commands, or device/media data.
-The custom protocol only resolves files inside dist. Network requests outside
-local packaged schemes are blocked by the Electron session and renderer CSP.
+Electron serves React/TypeScript from the local `morph://studio` protocol in a
+sandboxed, isolated renderer. The preload exposes allowlisted preferences, neural
+commands, and clip-render commands. The main process chooses all filesystem paths
+through native dialogs; the renderer cannot execute arbitrary commands. Remote
+requests are blocked by the session and CSP.
 
-Video: getUserMedia → HTMLVideoElement → Canvas effect → preview canvas.
-A module worker uses MediaPipe Face Landmarker in VIDEO mode. One resized
-ImageBitmap is transferred at a time, with no frame queue. The worker closes
-input bitmaps. Results expire after 400 ms; a stalled worker is terminated after
-2.5 seconds. Landmark detection runs at about 10–15 Hz; rendering targets 30 FPS.
-CPU inference avoids unsupported GPU-worker assumptions. Procedural avatars
-track facial center, eye openness, mouth opening, and eye-line rotation.
+Live face replacement uses getUserMedia → bounded JPEG request → local Python
+GhostV2 → face-region compositor → preview and optional OBS Virtual Camera. Only
+one neural frame is in flight. Reference identity embeddings are held in memory.
+Lost-face output is black. The model changes inner facial features; it has no
+full-head generation or reliable foreground-object occlusion mask.
 
-Output: preview canvas → bounded ImageBitmap copy → BroadcastChannel → separate
-output canvas. Output targets about 15 FPS and blacks out after 1.2 seconds
-without a new frame. OBS captures only this window. There is no native camera
-extension or DirectShow/Media Foundation driver in the project.
+Local clip rendering uses a separate worker with one decoded frame at a time,
+full-precision inference, optional GFPGAN restoration, and FFmpeg H.264/AAC output.
+The main process prevents concurrent neural capture/rendering. Native dialogs
+select input and a new output path. Successful output is published atomically;
+existing files are never overwritten. Original motion/audio are retained, source
+metadata is stripped, and cancellation terminates the worker.
 
-Audio: getUserMedia → AudioContext at 48 kHz → AudioWorkletNode → configurable
-DelayNode → selected physical or virtual audio sink. The DSP uses a 1024-point
-FFT, 256-sample hop, Hann analysis/synthesis windows, phase-based instantaneous
-frequencies, pitch-bin remapping, and smoothed spectral-envelope correction.
-This approximates independent pitch/formant adjustment; it does not replicate
-neural voice conversion. FFT and overlap buffers are preallocated and fixed.
-Parameter transitions are smoothed; each 128-frame render quantum writes exactly
-128 output samples. Robot effects use ring modulation. A soft gate and final
-ceiling prevent excessive output. There is no neural denoising or compressor.
+Legacy procedural effects still use the MediaPipe browser worker and bounded
+canvas output. Audio uses local AudioWorklet DSP for pitch/formant effects; this
+is not neural voice cloning. Device identifiers are not saved. Preferences have a
+validated schema and a fixed native storage file.
 
-Persona selection updates visual ID and voice parameters in one React state
-operation. DSP receives updated parameters asynchronously and ramps them. These
-are not sample-accurate synchronized commits across camera and audio clocks.
-Manual audio offset is implemented; automatic clock synchronization and drift
-correction are not. Audio latency includes algorithm delay, AudioContext-reported
-base/output latency, and configured delay. It excludes capture-driver, OBS,
-virtual-device, network, and conferencing latency.
-
-Settings use a validated allowlist, localStorage, and a schema-validated atomic
-native preferences file in the OS app-data directory. Device IDs and labels are not
-persisted. Capture generation tokens prevent delayed permission results from
-restarting stopped pipelines. Emergency stop cancels animation, terminates the
-worker, closes tracks and audio context, and closes the projector.
-
-Directory responsibilities:
-
-- apps/desktop/electron: local protocol, window security, OS permissions.
-- apps/desktop/src/video: worker tracking and modular mode renderer.
-- apps/desktop/src/audio: platform audio graph and standalone testable DSP.
-- apps/desktop/src/presets.ts: original character and voice settings schema.
-- apps/desktop/src/App.tsx: studio, settings, device control, lifecycle, projector.
-- scripts: model verification, privacy audit, license inventory, synthetic benchmark.
-- tests: DSP invariants and privacy/security regression checks.
-
-Further modularization of the UI/controller and native device backends is planned
-before production stabilization. Electron was selected for dependable shared
-Chromium media/AudioWorklet behavior and explicit sink routing rather than adding
-unverified native capture bindings in this first milestone.
+Emergency stop closes capture tracks, DSP, neural output, and requests clip
+cancellation. The native worker closes the virtual device on exit. External
+conferencing software can retain its last frame; reception and meeting behavior
+require separate validation. See IMPLEMENTATION_STATUS.md for measured results.
