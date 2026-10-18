@@ -17,3 +17,12 @@ apps/desktop/public/models/*.task
 *.pem
 *.key
 apps/desktop/public/wasm/
+
+# Local neural runtime and private appearance references
+.venv/
+.runtime/
+*.pt
+*.pth
+*.safetensors
+__pycache__/
+*.pyc
