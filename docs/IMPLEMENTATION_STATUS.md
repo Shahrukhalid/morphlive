@@ -13,14 +13,18 @@ Version 0.1.0 is an experimental preview, not a completed production application
   exposes seams and facial-hair remnants; it is not indistinguishable. See
   NEURAL_RUNTIME.md for separate synthetic-input and live timing evidence.
 
+- Free local Mac optimization: channels-last MPS generator and face-region
+  compositing implemented. Latest short 720p fictional-input comparison measured
+  19.32 FPS versus 15.65 FPS before the change, excluding transport and camera.
+  Three numerical compositor checks PASS; live quality remains unaccepted.
 - Strict TypeScript production build: PASS.
 - Seventeen automated audio/native-bridge/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.
 - Dependency audit after downloader override: zero reported vulnerabilities.
 - Main-branch GitHub CI tests, source build, privacy scan, license inventory, and
   dependency audit: PASS on macOS and Windows hosted runners for the earlier
-  procedural implementation. Neural-branch CI is pending publication; native
-  model inference is not exercised by source CI. This is not hardware support
+  procedural implementation. The initial neural prototype at `2dd18ee` also
+  passed both runners. Native model inference is not exercised by source CI. This is not hardware support
   certification. A public Dependabot signature false positive was corrected.
 - Unsigned arm64 .app packaging and local application launch: PASS.
 - Actual webcam capture at 1280 × 720: PASS in short local runtime check.

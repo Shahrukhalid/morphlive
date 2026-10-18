@@ -13,6 +13,46 @@ Voice pairing uses the existing DSP; there is no neural voice conversion.
 The alternative MIT LivePortrait mode animates a square reference portrait. It
 is substantially slower and does not replace a face inside the original scene.
 
+## Free local Mac constraint
+
+The runtime stays free and local on this Mac. No paid inference API, cloud
+processing, subscription, or additional computer is required by this prototype.
+Face restoration starts disabled; installing its weights does not silently
+trade motion speed for additional detail. It remains an explicit option.
+
+## Latest local optimization
+
+The MPS generator uses channels-last weights. A controlled generator-only
+comparison measured 43.69 ms versus 37.35 ms; output tensors had zero maximum
+absolute difference for that fictional input. Full pipeline output changes
+because compositing changed separately.
+
+The compositor processes the face region, feathers inward from valid generated
+pixels, and leaves the background exact. Uniform upper-face colour correction
+and a coarse illumination adjustment at the seam replace the previous
+whole-face spatial transfer of original shading. This reduces the mechanism
+that copied original mouth/beard shading; it does not remove facial hair outside
+the replaced region or establish convincing visual quality.
+
+A repeat before/after probe on Apple M5 / 16 GB, MPS FP16, used 12 fictional-input
+frames after three warmups, with restoration off. At 640 × 640, mean processing
+fell from 55.77 to 50.57 ms (17.93 to 19.77 FPS). At 1280 × 720, it fell from
+63.90 to 51.76 ms (15.65 to 19.32 FPS), with optimized p95 54.78 ms. These timings
+exclude JPEG transport, camera acquisition and conferencing. They are short
+synthetic-input comparisons, not a live-call performance claim. Visual realism
+and natural facial-motion acceptance still FAIL.
+
+Reproduce the current configuration with:
+
+```sh
+.venv/bin/python native/morphlive_engine/benchmark.py --engine faceswap --frames 12 --width 1280 --height 720
+.venv/bin/python scripts/test-composite.py
+```
+
+Three numerical checks cover exact unchanged background, generated-crop boundary
+coverage, and preventing original dark mouth shading from entering the fully
+replaced interior. No physical capture devices are used by these checks.
+
 ## Current evidence
 
 - GhostV2, Apple M5 / 16 GB, PyTorch 2.9.1 MPS FP16, eight fictional-input frames
