@@ -18,9 +18,10 @@ renderer, and a streaming AudioWorklet phase vocoder. No account, API key, cloud
 processing, recording, or telemetry is required.
 
 **This is a development preview, not a finished production release.** Automated
-DSP and build checks pass. Physical camera, audible quality, external virtual
-devices, sustained sessions, and conferencing acceptance tests still require
-verification. Read [implementation status](docs/IMPLEMENTATION_STATUS.md) before
+DSP and build checks pass. A real 720p camera, local face tracking, persona controls, the output window,
+and microphone processing to a silent sink were exercised on Apple Silicon macOS.
+Audible quality, external virtual devices, sustained sessions, and conferencing
+acceptance tests still require verification. Read [implementation status](docs/IMPLEMENTATION_STATUS.md) before
 using it in a live call.
 
 ## Features implemented in source
@@ -76,7 +77,7 @@ Rebuild and restart Electron to apply renderer changes there.
    checkbox. Camera and microphone do not start automatically.
 2. Open **Devices**. Choose a camera and microphone. Device labels may remain
    unavailable until the OS grants capture permission.
-3. Choose an explicit **Processed audio output**: headphones for testing or your
+3. Choose an explicit **Processed audio output**: silent processing for a feedback-free test, headphones for listening, or your
    installed virtual cable for a call. Never use that cable as MorphLive's input.
 4. Start camera and microphone separately. Select a persona in **Studio**.
 5. Voice follows the persona while **Match voice to persona** is enabled. Moving

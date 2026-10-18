@@ -6,7 +6,8 @@ stream to remote services, identify people, create embeddings, or send telemetry
 The Electron session blocks remote requests. The renderer CSP restricts scripts,
 workers, and connections to packaged resources.
 
-Preferences are stored locally using localStorage. They include selected persona,
+Preferences are stored locally using localStorage and a schema-validated JSON
+file in the OS application-data directory with owner-only creation permissions. They include selected persona,
 DSP parameters, custom preset names, disclosure, and performance options. Device
 IDs and device names are not persisted. Do not put private details in preset names
 if you intend to share screenshots. Consent is reset when the app restarts.

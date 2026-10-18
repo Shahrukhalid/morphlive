@@ -12,7 +12,8 @@ The desktop renderer has Node integration disabled, context isolation enabled,
 and sandboxing enabled. Navigation and unrelated popups are blocked. Only local
 media permission requests are accepted and OS permission is still required.
 Remote application traffic is denied. No arbitrary command execution or generic
-filesystem IPC is exposed to the renderer.
+filesystem IPC is exposed to the renderer. A narrow preferences bridge only
+loads/saves a validated, size-limited settings schema at a fixed app-data file.
 
 Model downloads use a pinned URL, maximum accepted size, and pinned SHA-256.
 Models are not user-supplied executable plugins. No third-party drivers are
