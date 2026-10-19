@@ -13,5 +13,5 @@ https://ai.google.dev/edge/mediapipe/solutions/vision/face_landmarker
 
 The model is excluded from version control. A local application package built
 after installation includes it; do not distribute packages without model review.
-Original camera, studio color adjustment, and anonymous avatar fallback work
-without a model. Face-attached masks require it.
+Live neural capture requires this model and the separately installed native
+runtime. The obsolete browser tracker and procedural fallback have been removed.
