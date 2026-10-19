@@ -1,35 +1,23 @@
 # Virtual camera route
 
-Neural modes send frames directly through the installed OBS camera extension
-using pyvirtualcam. Follow NEURAL_RUNTIME.md, start capture, then Start virtual
-camera. Keep OBS’s own virtual camera stopped. This route was received in Zoom
-Workplace 7.2.2 video preview; meeting transmission remains unverified.
+MorphLive sends completed neural frames through the separately installed OBS
+camera extension using pyvirtualcam. It does not create a device named MorphLive
+Virtual Camera; select **OBS Virtual Camera** in the receiving application.
 
-Legacy effects use a dedicated MorphLive Output window captured by OBS.
-The app does not register a MorphLive Virtual Camera device. The selectable device
-is OBS Virtual Camera. Native macOS Camera Extensions and Windows Media Foundation
-virtual camera backends are future work requiring platform-specific implementation,
-signing, activation, and compatibility testing.
+1. Install the local neural runtime and activate the official OBS camera extension.
+2. Keep OBS's own virtual-camera sender stopped.
+3. Start the physical camera in MorphLive, then click **Start virtual camera**.
+4. Select OBS Virtual Camera in Zoom, Meet or another receiving application.
+5. Verify motion in that application's preview, then stop MorphLive output when done.
 
-1. Start the camera and choose an effect.
-2. Click Open output. The window is a clean canvas with optional synthetic label.
-3. In OBS create a scene and add macOS Screen Capture in window mode, or Windows
-   Window Capture. Choose MorphLive Output, never the main studio window.
-4. Fit the source to the scene. Disable unrelated sources and recording.
-5. Start OBS Virtual Camera. Select it in a call's camera settings.
-6. Verify transformed motion in the receiving app. Stop OBS Virtual Camera when
-   finished, along with MorphLive capture.
+The earlier direct neural route was received in Zoom Workplace 7.2.2 preview;
+meeting transmission and the updated occlusion pipeline remain unverified. The
+virtual camera's advertised 30 FPS does not establish the neural processing rate.
+MorphLive reports completed frame timings; actual conferencing latency needs a
+receiver test. External apps may retain their last received frame after a stop.
 
-The main preview targets 30 FPS. Output copies are capped around 15 FPS and use
-bounded image messages; they are not a verified 720p30 native camera path. Keep
-its window unminimized. The projector blanks on stop or missing frames, but OBS
-and receivers may retain a previous frame. Check the receiving app directly.
+The obsolete window-capture/projector route has been removed. MorphLive does not
+install drivers, extensions or system permissions automatically. See
+[neural runtime](NEURAL_RUNTIME.md) for setup and current limitations.
 
-Backend availability is visible through enumerated camera devices after media
-permissions, but presence alone does not prove an active OBS route. The UI reports local window/sender status; it cannot determine whether a
-receiving application has accepted the feed.
-
-Upstream references:
-https://obsproject.com/kb/virtual-camera-guide
-https://obsproject.com/kb/window-capture-sources
-https://obsproject.com/kb/macos-permissions-guide
+[Official OBS virtual camera guide](https://obsproject.com/kb/virtual-camera-guide).

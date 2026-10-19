@@ -4,16 +4,20 @@ Version 0.1.0 is an experimental preview, not a completed production application
 
 ## Unresolved acceptance failures
 
-User-supplied live screenshots show face replacement painting over a foreground hand, unchanged beard/hair/head shape, and visible identity blending. Realistic full appearance transformation remains FAIL. A Google hand-landmark detector found a hand in only one of the two screenshots; this inadequate workaround was not integrated. No live capture was started for that analysis.
+User-supplied live screenshots show face replacement painting over a foreground hand, unchanged beard/hair/head shape, and visible identity blending. Realistic full appearance transformation remains FAIL. A Google hand-landmark detector found a hand in only one of the two screenshots; that workaround was rejected. The new optional XSeg visibility guard passes synthetic obstruction checks; natural hand handling remains unverified. No live capture was started for that analysis.
 
 ## Implemented and checked
+
+- Removed obsolete procedural masks, browser tracker, WASM dependency/copying and legacy output-window transport. Cached voice settings retain their old IDs for compatibility.
+- Optional pinned local XSeg visibility model preserves synthetic foreground obstructions; it adds latency and does not change hair, beard or head shape.
+- Full-frame SDXS trial rejected: about 6.9 FPS in a short MPS test with eye defects. GHOST 2.0 prerequisite inspection found CUDA and research-model dependencies; no working Mac inference was established.
 
 - Removed the obsolete LivePortrait photo-animation backend and installer; only live-frame replacement remains in the neural engine.
 - Optional GhostV2 face replacement and cached source switching: functional native probe PASS for all 18 installed references and lost-face blackout.
 - Zoom Workplace 7.2.2 preview received transformed live frames via OBS Virtual Camera. Native Escape stop yielded the inactive OBS slate. This is a preview result, not a completed meeting/audio acceptance test.
 - Visual realism and natural motion acceptance remain unfulfilled. GhostV2 is genuine live-frame face replacement, but seams and facial-hair remnants can remain. A restoration model and widescreen output do not establish convincing visual quality.
 
-- Free local optimization: channels-last MPS generator and face-region compositing implemented. Latest short 720p fictional-input comparison measured 19.32 FPS versus 15.65 FPS before the change, excluding transport and camera. Three numerical compositor checks PASS.
+- Free local optimization: channels-last MPS generator and face-region compositing implemented. Latest short 720p fictional-input comparison measured 19.32 FPS versus 15.65 FPS before the change, excluding transport and camera. Five numerical compositor checks PASS.
 - Strict TypeScript production build: PASS.
 - Twenty automated audio/native-bridge/security/privacy regression checks: PASS.
 - Clean locked dependency reinstall and repeat test/build: PASS on macOS arm64.
@@ -25,16 +29,10 @@ User-supplied live screenshots show face replacement painting over a foreground 
   certification. A public Dependabot signature false positive was corrected.
 - Unsigned arm64 .app packaging and local application launch: PASS.
 - Actual webcam capture at 1280 × 720: PASS in short local runtime check.
-- Local MediaPipe CPU worker face acquisition: PASS after classic-worker fix.
-- Original procedural masks, avatar/privacy output, and persona switching: source
-  implemented; tracked runtime and linked parameter changes exercised.
-- Atlas/Nova/Ghost linked voice settings: PASS for observed UI parameter mapping.
 - Physical microphone → AudioWorklet → silent output sink: PASS for startup and
   ongoing processing. Estimated internal audio delay readout: 38 ms.
 - Pitch changes with preserved duration, independent envelope control, exact mute,
   output ceiling, finite samples, and fixed DSP buffers: automated checks PASS.
-- Dedicated anonymous output window: PASS for local canvas reception after the
-  readiness handshake fix. Escape in the projector closed capture/output: PASS.
 - Local emergency stop: camera/output shutdown exercised.
 - Source privacy scan: PASS; no private media or model weights selected for Git.
 - Public source publication authorized explicitly by the user. Only the new
@@ -47,12 +45,10 @@ User-supplied live screenshots show face replacement painting over a foreground 
   schema validation and atomic writes. Actual quit/relaunch restored Nova and its
   pitch/formant values: PASS after correcting startup sender validation.
 - Device enumeration, permissions, generation-based cancellation, stop recovery,
-  tracking timeout, stale landmark expiry, and Auto resolution fallback.
-- Output window uses one acknowledged frame in flight and a stale-feed blackout.
+  and bounded native requests. Auto currently uses Balanced capture limits.
 - Manual additional audio delay is implemented. True shared A/V clocks, drift
   detection/correction, and sample-accurate persona changes are not implemented.
-- The original procedural renderer uses Canvas 2D and CPU landmark inference.
-  The separate neural sidecar uses PyTorch MPS on the tested Mac; its measured
+- The native sidecar uses PyTorch MPS on the tested Mac; its measured
   timing and quality limits are documented in NEURAL_RUNTIME.md.
 
 ## NOT TESTED or BLOCKED

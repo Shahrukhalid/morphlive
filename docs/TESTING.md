@@ -24,7 +24,7 @@ Hardware acceptance steps and result vocabulary: PASS, FAIL, BLOCKED, NOT TESTED
 - H Live switching: change personas during a call; test mute, passthrough, and stop.
 - I Long session: at least 30 minutes; record memory, FPS, drop counts, drift, crashes.
 - J Recovery: permission denied, hardware unplug/replug, camera busy, sleep/wake,
-  output window closed, device removed, model absent/corrupt, and app restart.
+  virtual output closed, device removed, model absent/corrupt, and app restart.
 - K Resource pressure: verify bounded tracking, Auto profile reduction, timely stop.
 - L Privacy: inspect OS network traffic during normal offline processing; no remote
   traffic. Confirm exported diagnostics excludes names, IDs, paths, and media.

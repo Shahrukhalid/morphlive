@@ -10,10 +10,11 @@ If denied, open System Settings → Privacy & Security → Camera / Microphone a
 grant access to the development Electron or packaged MorphLive app. Restart the
 application after changing permissions. MorphLive does not bypass OS controls.
 
-Install current OBS separately. Grant OBS Screen & System Audio Recording access
-as required by your macOS version. Add macOS Screen Capture in window mode and
-select MorphLive Output. Start OBS Virtual Camera and follow any official OBS
-extension activation steps. It is displayed as OBS Virtual Camera.
+Install current OBS separately and follow its official camera-extension activation
+steps. Install the neural runtime as described in NEURAL_RUNTIME.md. Keep OBS's
+own virtual-camera sender stopped, start MorphLive capture, then click Start
+virtual camera. Select OBS Virtual Camera in the receiving app. The retired
+window-capture route and its screen-recording permission are not required.
 
 For audio, install BlackHole separately from its official source, following its
 installer and restart instructions. Choose BlackHole 2ch as MorphLive output and

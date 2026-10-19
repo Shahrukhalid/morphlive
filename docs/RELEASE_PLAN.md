@@ -3,7 +3,7 @@
 1. Local engine baseline: source camera/audio pipelines, tracking, original
    effects, DSP, editable linked personas, emergency stop, and offline shell.
 2. Runtime acceptance: physical camera/microphone, audible quality, permissions,
-   tracking under different lighting, output window, and device hot-plugging.
+   tracking under different lighting, virtual output, and device hot-plugging.
 3. External integration: verify OBS, virtual audio, Zoom, Meet, and Teams on each
    intended OS. Record exact app versions and actual results.
 4. Reliability: 30-minute sessions, sleep/wake, minimized windows, disconnects,

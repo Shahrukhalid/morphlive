@@ -1,41 +1,27 @@
 # Performance record
 
-Development environment: Apple Silicon arm64 Mac, macOS 26.7.2, Node.js 26.12.0,
-Electron 42.11.15 / Chromium 148. Exact chip model and RAM were not collected;
-no machine name or serial number is included. These are limited observations,
-not a reference-hardware certification.
+These are short fictional-input probes on Apple M5 / 16 GB, not sustained camera
+or conferencing measurements. Live appearance realism remains unfulfilled.
 
-Observed during short local hardware checks:
+- GhostV2, MPS FP16, restoration off, 720p, 12 measured frames after three warmups:
+  mean 51.76 ms / 19.32 FPS, p95 54.78 ms in the earlier optimization comparison.
+- GhostV2 with the new XSeg guard, same resolution and restoration off, eight
+  measured frames after three warmups: mean 96.4 ms / 10.37 FPS, p95 101.5 ms.
+- Separate XSeg-only six-call probes: about 33 ms with CoreML after warmup versus
+  about 55 ms on CPU. Combined costs include synchronization and compositing.
+- SDXS whole-frame alternative: three MPS FP16 outputs after one warmup averaged
+  145.0 ms / 6.9 FPS at 512 square. Eye defects and a blurred lower-strength trial
+  failed quality acceptance; this engine was rejected.
 
-- Camera capture: 1280 × 720.
-- Face tracking: returned live landmarks in a CPU worker.
-- Preview readouts before final frame-pacing adjustment: 25.2–25.9 FPS.
-  A later short check after adjustment reported 29.8 FPS at 1280 × 720 while
-  face tracking and silent microphone DSP were active. This is not a sustained
-  performance certification.
-- Renderer readout: approximately 0.1–0.4 ms per canvas effect render. This omits
-  camera acquisition, landmark inference, output copies, and receiver latency.
-- Microphone pipeline: actual microphone input through AudioWorklet to a silent
-  output sink. Estimated internal audio latency readout: 38 ms. It includes a
-  21.33 ms algorithmic window plus browser-reported base/output delay. It excludes
-  capture-driver latency, external cable/OBS/network/conferencing delays. No
-  physical round-trip or audible quality measurement was performed.
+Camera acquisition, JPEG transport and conferencing add latency to these values.
+An advertised 30 FPS virtual-camera format does not mean 30 completed neural
+frames per second. Neither tested path meets smooth full-appearance real-time
+acceptance. See NEURAL_RUNTIME.md for reproducibility and model provenance.
 
-Synthetic DSP throughput (`npm run benchmark`): 30 seconds of mono 48 kHz audio
-processed in 422 ms after warm-up, real-time factor 0.0141. This is offline
-computation throughput, not a real-time callback deadline or voice-quality result.
+Performance capture uses up to 640 pixels wide; other profiles process up to
+1280 pixels wide. Auto currently uses Balanced capture limits. There is one
+native frame request in flight and no unbounded media queue.
 
-Targets: lightweight 720p30 preview, bounded tracking, conversational audio, and
-stable sessions. Sustained 30 FPS, 1080p, A/V sync tolerance, long-running memory,
-callback overruns, and OS thermal behavior have not been validated. Output window
-copies target about 15 FPS and require separate OBS receiver measurements.
-
-Performance profile controls request 640-wide, 720p, or 1080p input where the
-camera supports it. Auto reduces render resolution when preview throughput falls
-below 22 FPS. Tracking inputs are resized to 640 pixels wide. There is only one
-tracking bitmap and one acknowledged output frame in flight. CPU landmark
-inference is selected explicitly. No GPU acceleration benchmark is claimed.
-
-Repeat measurements on documented reference hardware before a production release.
-Use real speech and visible clap tests, profile CPU/GPU and memory for 30 minutes,
-and record receiver behavior rather than inferring it from synthetic throughput.
+Audio DSP throughput and its estimated 21.33 ms algorithmic window are separate
+from physical microphone/output latency. Audible quality, long sessions, thermal
+behavior, memory trends and A/V drift need hardware measurements.
