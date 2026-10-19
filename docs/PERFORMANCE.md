@@ -1,7 +1,7 @@
 # Performance record
 
-These are short fictional-input probes on Apple M5 / 16 GB, not sustained camera
-or conferencing measurements. Live appearance realism remains unfulfilled.
+The processing probes below use short fictional inputs on Apple M5 / 16 GB.
+Live appearance realism remains unfulfilled.
 
 - GhostV2, MPS FP16, restoration off, 720p, 12 measured frames after three warmups:
   mean 51.76 ms / 19.32 FPS, p95 54.78 ms in the earlier optimization comparison.
@@ -25,3 +25,13 @@ native frame request in flight and no unbounded media queue.
 Audio DSP throughput and its estimated 21.33 ms algorithmic window are separate
 from physical microphone/output latency. Audible quality, long sessions, thermal
 behavior, memory trends and A/V drift need hardware measurements.
+
+## Brief local camera check
+
+With the foreground guard active and restoration off, the packaged app displayed
+5.7–6.5 FPS and approximately 128–155 ms neural inference during a brief camera
+check. Camera and all outputs were closed with emergency stop; microphone and
+virtual output were never started. No camera media was saved or uploaded.
+No hand crossing was visible in the inspected frames, so natural hand-occlusion
+acceptance remains NOT TESTED. The visible face remained an inner-face patch;
+full appearance realism is FAIL. This was not a sustained or conferencing test.
