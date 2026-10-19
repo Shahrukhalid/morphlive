@@ -74,7 +74,7 @@ app.whenReady().then(() => {
       }
       return {references:catalogStatus()};
     }
-    if(request.op==='start'&&reference&&request.backend==='faceswap'){try{return await neural.start(reference.id,request.backend,request.enhance===true,request.widescreen!==false);}catch(error){neural.stop();throw error;}}
+    if(request.op==='start'&&reference&&request.backend==='faceswap'){try{return await neural.start(reference.id,request.backend,request.enhance===true);}catch(error){neural.stop();throw error;}}
     if(request.op==='frame'&&typeof request.jpeg==='string'&&request.jpeg.length<=1_400_000)return neural.request({op:'frame',jpeg:request.jpeg});
     if(request.op==='virtual'&&typeof request.enabled==='boolean')return neural.request({op:'virtual',enabled:request.enabled});
     if(request.op==='enhance'&&typeof request.enhance==='boolean')return neural.request({op:'enhance',enhance:request.enhance});
@@ -119,9 +119,7 @@ app.whenReady().then(() => {
   main = new BrowserWindow({ width: 1500, height: 980, minWidth: 1050, minHeight: 740, backgroundColor: '#0c0e13', title: 'MorphLive', webPreferences: { preload: path.join(__dirname,'preload.cjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, backgroundThrottling: false } });
   main.removeMenu();
   main.webContents.on('will-navigate', (event) => event.preventDefault());
-  main.webContents.setWindowOpenHandler(({ url }) => local(url) && new URL(url).search === '?output=1'
-    ? { action: 'allow', overrideBrowserWindowOptions: { title: 'MorphLive Output', width: 1280, height: 720, backgroundColor: '#000000', autoHideMenuBar: true, webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false, backgroundThrottling: false } } }
-    : { action: 'deny' });
+  main.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
 });

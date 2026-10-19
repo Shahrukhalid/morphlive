@@ -6,7 +6,7 @@ OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,
       400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109]
 
 
-def blend_face(rgb, generated, matrix, points):
+def blend_face(rgb, generated, matrix, points, visibility=None):
     """Blend only valid generated pixels, leaving the rest of the frame exact.
 
     A bounded uniform colour correction uses the upper face, avoiding the
@@ -34,6 +34,12 @@ def blend_face(rgb, generated, matrix, points):
     # A zero border makes distance-to-boundary defined even at image edges.
     distance=cv2.distanceTransform(np.pad(mask,1),cv2.DIST_L2,3)[1:-1,1:-1]
     alpha=np.clip(distance/max(1,radius*4),0,1)[...,None]
+    if visibility is not None:
+        if visibility.ndim!=2 or not np.isfinite(visibility).all():
+            raise ValueError('Invalid visibility mask')
+        visibility=cv2.resize(visibility.astype(np.float32),generated.shape[:2][::-1])
+        visible=cv2.warpAffine(visibility,inverse,(shape[1],shape[0]),borderMode=cv2.BORDER_CONSTANT)
+        alpha=np.minimum(alpha,np.clip(visible,0,1)[...,None])
     target=rgb[y0:y1,x0:x1]
     upper=(mask>0)&(np.arange(shape[0])[:,None]<local[1,1])&(alpha[...,0]>.95)
     if np.count_nonzero(upper)>=32:

@@ -9,9 +9,11 @@ Install Node.js 24+, run `npm ci`, `npm run runtime:install`, optionally
 Grant camera and microphone access in Windows Privacy settings. Close other apps
 that hold the camera exclusively if capture fails.
 
-Install OBS from its official site. Capture the MorphLive Output window using
-Window Capture, fit it to the scene, then start OBS Virtual Camera. Select that
-camera in the conferencing client. No native Media Foundation backend is provided.
+Install the native neural runtime and OBS from their official sources, following
+NEURAL_RUNTIME.md and pyvirtualcam backend requirements. Keep OBS's own sender
+stopped and use MorphLive's Start virtual camera control. Select OBS Virtual
+Camera in the conferencing client. This Windows path remains NOT TESTED.
+The obsolete output-window route has been removed.
 
 For audio, install VB-CABLE separately under its licensing terms. It can require
 administrator approval and restart. Choose CABLE Input as MorphLive's processed

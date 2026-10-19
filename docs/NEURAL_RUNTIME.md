@@ -9,7 +9,7 @@ incoming camera frame. The source photo supplies an identity embedding; the
 output scene comes from the live camera. Hair, body, clothing, and surroundings
 remain original. Detail restoration is optional and starts disabled for speed.
 
-The obsolete photo-animation backend and its installer have been removed. The
+The obsolete photo-animation and procedural-mask backends have been removed. The
 remaining engine replaces inner facial features only. It does not generate a
 new head, hair, beard or body, and has no reliable foreground-object occlusion
 mask. User screenshots confirm hand overwrite and visible face boundaries.
@@ -49,7 +49,7 @@ Reproduce the current configuration with:
 .venv/bin/python scripts/test-composite.py
 ```
 
-Three numerical checks cover exact unchanged background, generated-crop boundary
+Five numerical checks cover exact unchanged background, generated-crop boundary
 coverage, and preventing original dark mouth shading from entering the fully
 replaced interior. No physical capture devices are used by these checks.
 
@@ -153,3 +153,39 @@ camera's advertised format.
 All weights, imported references, the Python environment, logs, and generated
 packages stay outside Git. No contributor/co-author identities are added by
 runtime installation.
+
+## Replacement engine evaluation
+
+The requested full appearance transformation remains unresolved. GHOST 2.0
+source at `b485e1a7f87a7190528e4ade8f0fef86317af7c4` hard-codes CUDA in its
+inference path and depends on DECA/EMOCA and PyTorch3D. DECA's own model/source
+terms are for non-commercial scientific research. This was a source/prerequisite
+inspection, not a successful Mac inference benchmark. No DECA model was installed.
+
+SDXS-512-DreamShaper public revision
+`76f720262bb051da75666b22c902a78c8e16c763` was tested locally with fictional
+512-pixel input, PyTorch MPS FP16, fixed seed, and a generic adult feminine prompt.
+After one warmup, one-step whole-frame generation took 146.2, 141.2, and 147.6 ms
+(mean 145.0 ms, about 6.9 FPS), excluding capture/transport. Visual inspection
+found conspicuous eye defects. A lower-strength two-step trial produced a blurred
+image. This candidate was rejected; it is not an installed app backend.
+
+The optional XSeg foreground guard is a separate visibility model, not a new
+identity/full-head generator. It runs on the current aligned face crop and prevents
+generated pixels being composited where visibility is low. A synthetic obstruction
+test preserved its original pixels exactly; natural hand/motion acceptance remains
+unverified. On this Mac, six-call standalone probes averaged about 33 ms after
+warmup with CoreML versus about 55 ms on CPU. These costs add to face replacement.
+Install explicitly with `python3.11 scripts/install-faceswap.py --occlusion`.
+The fixed model digest is verified before loading; there is no runtime download.
+FaceFusion identifies this separately downloaded XSeg model as GPL-3.0. Weights
+and FaceFusion application code are not bundled or copied into this repository.
+
+Sources: [GHOST 2.0](https://github.com/ai-forever/ghost-2.0),
+[DECA terms](https://github.com/yfeng95/DECA#license),
+[SDXS model](https://huggingface.co/IDKiro/sdxs-512-dreamshaper),
+[XSeg model metadata](https://github.com/facefusion/facefusion/blob/master/facefusion/face_masker.py).
+
+With the guard active, an eight-frame 720p fictional-input probe after three
+warmups measured mean 96.4 ms / 10.37 FPS, p95 101.5 ms, excluding camera, JPEG
+transport and conferencing. This is below the requested smooth real-time target.

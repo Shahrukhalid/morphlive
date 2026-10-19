@@ -8,10 +8,7 @@ count as passing external integration tests.
 - OS: macOS 26.7.2, Apple Silicon arm64.
 - App: unsigned local MorphLive 0.1.0 bundle, Electron 42.11.15 / Chromium 148.
 - Camera: physical webcam, 1280 × 720; live capture PASS in a short check.
-- Face landmarks: local Google model, CPU worker; face acquisition PASS.
-- Persona controls: Atlas, Nova, Ghost linked pitch/formant values observed; PASS.
-- Dedicated output window: anonymous avatar canvas received; PASS for window
-  reception only. This is not a virtual camera receiver test.
+- Face landmarks: local Google model in the native Python engine; fictional-input integration PASS. Natural-motion quality remains unfulfilled.
 - Microphone: physical input → AudioWorklet → silent AudioContext sink; startup
   and ongoing processing PASS. Audible voice quality NOT TESTED.
 - Preferences: quit/relaunch restored the selected Nova persona and voice settings;
@@ -33,11 +30,7 @@ count as passing external integration tests.
 - macOS / Google Meet / Safari: version not collected; NOT TESTED.
 - macOS / Microsoft Teams: version not collected; NOT TESTED.
 - macOS / Discord: version not collected; NOT TESTED.
-- macOS / OBS 32.1.0: local integration check attempted. OBS displayed a crash-
-  recovery prompt, and native source controls could not be operated reliably
-  through automation. That earlier window-capture route remains NOT TESTED; the later direct
-  native sender was received in Zoom preview as recorded above.
-  The clean MorphLive output window itself receives live anonymous frames.
+- macOS / OBS camera extension: the native sender was received in Zoom preview as recorded above. The retired window-capture route is no longer supported.
 - macOS / BlackHole: BLOCKED for specified route because BlackHole is not installed.
   No driver installation was performed.
 - Windows 10/11 / Zoom, Meet, Teams, Discord, OBS: NOT TESTED. Shared code and a

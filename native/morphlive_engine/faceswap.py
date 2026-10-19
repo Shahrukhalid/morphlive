@@ -50,6 +50,11 @@ class FaceSwapEngine:
         self.G=self.G.to(self.device,self.dtype).eval()
         if self.device=='mps':
             self.G=self.G.to(memory_format=torch.channels_last)
+        self.occlusion = None
+        occlusion_path=ROOT/'.runtime/models/occlusion/xseg_3.onnx'
+        if occlusion_path.exists():
+            from occlusion import OcclusionGuard
+            self.occlusion=OcclusionGuard(occlusion_path)
         self.weights = weights
         self.restorer = None
         if enhance or os.environ.get('MORPHLIVE_RESTORE') == '1':
@@ -145,6 +150,7 @@ class FaceSwapEngine:
         if aligned is None:
             return np.zeros_like(rgb),(time.perf_counter()-start)*1000,False
         target,matrix,points=aligned
+        visibility=self.occlusion.visibility(target) if self.occlusion else None
         with torch.inference_mode():
             generated,_=self.G(self.tensor(target),self.identity)
             if self.restorer is not None:
@@ -156,7 +162,7 @@ class FaceSwapEngine:
         if generated.shape[0]!=self.size:
             ratio=generated.shape[0]/self.size
             matrix=matrix*ratio
-        output=blend_face(rgb,generated,matrix,points)
+        output=blend_face(rgb,generated,matrix,points,visibility=visibility)
         # Keep video clean. Reference attribution remains in the app and manifest.
         return output,(time.perf_counter()-start)*1000,True
 

@@ -44,7 +44,7 @@ def main():
                         engine=FaceSwapEngine(reference,enhance=request.get('enhance') is True)
                     else:
                         raise ValueError('Unknown neural backend')
-                    send({'ok': True, 'device': engine.wrapper.device, 'backend': backend})
+                    send({'ok': True, 'device': engine.wrapper.device, 'backend': backend, 'occlusion':engine.occlusion is not None})
                 elif op == 'frame' and engine is not None:
                     encoded = request.get('jpeg', '')
                     if not isinstance(encoded, str) or len(encoded) > 1_400_000:

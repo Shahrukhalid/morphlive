@@ -17,7 +17,7 @@ IDs and device names are not persisted. Do not put private details in preset nam
 if you intend to share screenshots. Consent is reset when the app restarts.
 
 Diagnostics export contains app version, performance values, pipeline booleans,
-selected built-in persona ID, and profile. It excludes device names, identifiers,
+selected built-in reference ID, and profile. It excludes device names, identifiers,
 raw errors, operating-system paths, camera media, and audio samples.
 
 Model installation is a separate, explicit command contacting Google's official
@@ -27,13 +27,13 @@ application processing. No capture data is attached to those requests.
 
 The OBS/cable output routes intentionally expose transformed media to software
 that selects those devices. Conferencing applications may transmit it according
-to their own settings. Raw comparison is visible only inside the studio; OBS must
-capture the dedicated output window. Privacy persona replaces the entire canvas,
-even if tracking fails. Other mask effects return original camera pixels when a
-face cannot be tracked; do not rely on them for anonymity.
+to their own settings. Raw comparison is visible only inside the studio. The native virtual-camera
+route receives the processed output; the studio comparison is not sent through
+that route. Lost-face output is black. Optional occlusion detection can preserve
+foreground pixels, but the transformation is not a guarantee of anonymity.
 
-Emergency stop closes capture tracks, DSP context, and the output window. The
-projector blanks itself if it stops receiving frames. An external app or OBS may
-retain its last received frame; stop OBS Virtual Camera separately when finished.
+Emergency stop closes capture tracks, DSP and neural output, and requests
+cancellation of a local clip job. External apps may retain their last received
+frame. The obsolete browser projector and procedural masks have been removed.
 
 No mandatory accounts, API keys, analytics, or cloud AI services are used.

@@ -1,6 +1,6 @@
 # Third-party notices
 
-Original project code and procedural character illustrations: MIT.
+Original project application code: MIT.
 No photographs, recordings, external character artwork, or model weights are
 committed. Installed dependency distributions retain their original notices.
 
@@ -9,7 +9,7 @@ Runtime dependencies:
 - React and React DOM 19.0.0, including scheduler: MIT.
   https://github.com/facebook/react/blob/main/LICENSE
 - Lucide React 0.468.0: ISC. https://lucide.dev/license
-- MediaPipe Tasks Vision 0.10.32 and its packaged WASM runtime: Apache-2.0.
+- The separately installed native MediaPipe 0.10.35 runtime: Apache-2.0.
   https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE
 - Electron: MIT, with Chromium and other component notices distributed in the
   Electron application. https://github.com/electron/electron/blob/main/LICENSE
@@ -49,3 +49,8 @@ Optional public actor photo URLs, authors, individual Creative Commons licenses,
 and digests are in native/actor-references.json. These are public source credits,
 not application contributors. Credited, disclosed transformations do not imply
 endorsement by the people pictured.
+
+The optional XSeg-3 model is hosted by FaceFusion, whose model metadata lists it
+as GPL-3.0. It is downloaded separately with a pinned SHA-256; neither the model
+weights nor FaceFusion application source are included in the app or repository.
+The optional ONNX Runtime library retains its MIT license.

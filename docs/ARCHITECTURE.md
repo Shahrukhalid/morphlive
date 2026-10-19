@@ -9,8 +9,9 @@ requests are blocked by the session and CSP.
 Live face replacement uses getUserMedia → bounded JPEG request → local Python
 GhostV2 → face-region compositor → preview and optional OBS Virtual Camera. Only
 one neural frame is in flight. Reference identity embeddings are held in memory.
-Lost-face output is black. The model changes inner facial features; it has no
-full-head generation or reliable foreground-object occlusion mask.
+Lost-face output is black. The model changes inner facial features; it has no full-head generation. An
+optional pinned XSeg model supplies a visibility mask on the aligned crop to
+protect foreground obstructions. Natural hand/motion acceptance remains unverified.
 
 Local clip rendering uses a separate worker with one decoded frame at a time,
 full-precision inference, optional GFPGAN restoration, and FFmpeg H.264/AAC output.
@@ -19,8 +20,8 @@ select input and a new output path. Successful output is published atomically;
 existing files are never overwritten. Original motion/audio are retained, source
 metadata is stripped, and cancellation terminates the worker.
 
-Legacy procedural effects still use the MediaPipe browser worker and bounded
-canvas output. Audio uses local AudioWorklet DSP for pitch/formant effects; this
+The obsolete browser tracking/mask pipeline and output-window transport were
+removed. Audio uses local AudioWorklet DSP for pitch/formant effects; this
 is not neural voice cloning. Device identifiers are not saved. Preferences have a
 validated schema and a fixed native storage file.
 
