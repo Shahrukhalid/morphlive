@@ -27,6 +27,18 @@ class CompositeTests(unittest.TestCase):
         self.assertGreater(int(result[64,64,0]),120)
         self.assertEqual(result.dtype,np.uint8)
 
+    def test_occluded_foreground_pixels_are_preserved_exactly(self):
+        rgb=np.full((128,128,3),120,np.uint8);rgb[45:65]=[80,110,140]
+        generated=np.full_like(rgb,220);visible=np.ones((128,128),np.float32);visible[45:65]=0
+        result=blend_face(rgb,generated,np.eye(2,3,dtype=np.float32),landmarks(),visibility=visible)
+        self.assertTrue(np.array_equal(result[45:65],rgb[45:65]))
+        self.assertGreater(int(result[80,64,0]),120)
+
+    def test_invalid_visibility_is_rejected(self):
+        rgb=np.full((128,128,3),120,np.uint8)
+        with self.assertRaises(ValueError):
+            blend_face(rgb,rgb,np.eye(2,3,dtype=np.float32),landmarks(),np.full((128,128),np.nan))
+
     def test_uncovered_generated_crop_never_adds_black(self):
         rgb=np.full((128,128,3),120,np.uint8)
         generated=np.full((48,48,3),200,np.uint8)

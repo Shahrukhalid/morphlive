@@ -22,7 +22,7 @@ def digest(path):
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--restore',action='store_true',help='Also download the slower optional face detail model');args=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--restore',action='store_true',help='Also download the slower optional face detail model');parser.add_argument('--occlusion',action='store_true',help='Install the separately licensed GPL-3.0 XSeg foreground guard');args=parser.parse_args()
     if sys.version_info[:2]!=(3,11):
         raise SystemExit('Use Python 3.11 for this experimental runtime.')
     vendor=ROOT/'.runtime/vendor/ghostv2'
@@ -58,6 +58,18 @@ def main():
             temporary.replace(target)
         finally:
             temporary.unlink(missing_ok=True)
+    if args.occlusion:
+        folder=ROOT/'.runtime/models/occlusion';folder.mkdir(parents=True,exist_ok=True)
+        target=folder/'xseg_3.onnx';sha='48ccd7e8541e159a5a754ec9e62df2f12065f7df8f9af842c1750342c6533559'
+        if not target.exists() or digest(target)!=sha:
+            temporary=target.with_suffix('.download')
+            try:
+                with urllib.request.urlopen('https://github.com/facefusion/facefusion-assets/releases/download/models-3.2.0/xseg_3.onnx',context=context) as response,temporary.open('wb') as out:
+                    import shutil
+                    shutil.copyfileobj(response,out)
+                if digest(temporary)!=sha:raise RuntimeError('Occlusion model checksum mismatch')
+                temporary.replace(target)
+            finally:temporary.unlink(missing_ok=True)
     print('Face-swap runtime installed locally. Run npm run model:install for landmarks.')
     print('Import an adult reference you have permission to transform. No capture was started.')
 
