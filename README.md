@@ -20,9 +20,10 @@ Optional GFPGAN restoration improves some facial detail at a substantial speed c
 and starts disabled.
 
 **Full appearance transformation is not implemented.** The current model changes
-inner facial features, leaves beard/hair/head shape unchanged, and can paint over
-hands crossing the face. These are known failures, not camera-setting problems.
-The obsolete still-photo animation backend has been removed from the active source.
+inner facial features, leaves beard/hair/head shape unchanged, and can paint over hands crossing the face when occlusion detection fails.
+An optional separately installed XSeg guard now protects low-visibility regions;
+its natural hand/movement quality has not yet passed acceptance. These are known failures, not camera-setting problems.
+Obsolete photo-animation and procedural-mask backends have been removed.
 
 **This is a development preview.** Processing stays local. Indistinguishable visual
 quality, sustained real-time performance, Windows hardware support, and meeting
@@ -52,8 +53,9 @@ npm start
 Or run `./start.sh` on macOS/Linux or `start.bat` on Windows for 1-click startup.
 
 Model installation downloads a pinned official Google model and verifies its
-SHA-256. The app itself makes no model or runtime downloads. Without it, original
-video, studio color processing, and anonymous avatar fallback remain available.
+SHA-256. The app itself makes no model or runtime downloads. Live video requires
+the separately installed native runtime, landmark model, and a local reference.
+There is no procedural-mask or anonymous-avatar fallback.
 
 For renderer development, `npm run dev` serves the UI on localhost. The packaged
 Electron route is the reference runtime for media output selection and privacy.
@@ -81,12 +83,6 @@ Rebuild and restart Electron to apply renderer changes there.
 OBS camera extension separately, start capture, then **Start virtual camera**.
 Keep OBS’s own virtual camera stopped while the native engine sends frames.
 Select **OBS Virtual Camera** in the receiver.
-
-**Legacy effects video:** Install OBS separately. In MorphLive open **Output**. In OBS add a
-window capture of **MorphLive Output** (macOS Screen Capture in window mode on
-modern Macs), fit it to the scene, and start **OBS Virtual Camera**. The separate
-window contains only the transformed frame and disclosure. It targets about
-15 FPS; the main preview targets 30 FPS. Keep the output window unminimized.
 
 **Audio:** Install [BlackHole](https://github.com/ExistentialAudio/BlackHole) on
 macOS, or [VB-CABLE](https://vb-audio.com/Cable/) on Windows, separately. In
@@ -145,7 +141,7 @@ No real-person face or voice assets are included.
 
 ## License
 
-Original MorphLive source and procedural character artwork are MIT licensed.
+Original MorphLive application source is MIT licensed.
 Third-party components retain their licenses. Model weights and external drivers
 are not included in this source repository.
 
@@ -154,3 +150,8 @@ are not included in this source repository.
 The desktop **Render clip** workspace exports local videos using frame-by-frame GhostV2 face replacement, full-precision inference, and optional GFPGAN detail restoration. Install FFmpeg/FFprobe separately and select an installed adult reference. Choose a local video (up to five minutes), then a **new** MP4 filename. Output is capped at 1080p / 30 FPS, retains the source motion and audio (AAC re-encoded), and strips source metadata. Cancel or Escape stops the job. No camera or microphone starts during export and no clip is uploaded.
 
 This is face replacement: hair, body, clothing, and scene remain from the input. Undetected-face frames are black. Restoration may alter facial details, and seams, flicker, and imperfect identity remain possible. Rendered export is not a claim of Higgsfield-equivalent quality or live conferencing performance.
+
+The optional foreground guard installs with
+`python3.11 scripts/install-faceswap.py --occlusion`. It adds local processing
+time and does not generate hair, beard or head shape. See the replacement-engine
+measurements and limitations in [neural runtime](docs/NEURAL_RUNTIME.md).
