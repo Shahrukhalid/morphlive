@@ -6,9 +6,9 @@ committed. Installed dependency distributions retain their original notices.
 
 Runtime dependencies:
 
-- React and React DOM 19.0.0, including scheduler: MIT.
+- React and React DOM 19.3.1, including scheduler: MIT.
   https://github.com/facebook/react/blob/main/LICENSE
-- Lucide React 0.468.0: ISC. https://lucide.dev/license
+- Lucide React 1.58.0: ISC. https://lucide.dev/license
 - The separately installed native MediaPipe 0.10.35 runtime: Apache-2.0.
   https://github.com/google-ai-edge/mediapipe/blob/master/LICENSE
 - Electron: MIT, with Chromium and other component notices distributed in the
