@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MorphLive: Experimental Local Webcam and Voice Effects Prototype</title>
+<meta name="description" content="MorphLive is an experimental, local-first webcam face replacement and voice-effects prototype for Apple Silicon. Realistic real-time transformation was not achieved; contributors welcome.">
+<meta name="keywords" content="webcam face replacement, virtual camera, voice changer, real-time video, Apple Silicon, Electron, MediaPipe, local-first, computer vision research, help wanted">
+<meta name="author" content="Shahrukh Khalid">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#5b3fb5">
+<link rel="canonical" href="https://shahrukhalid.github.io/morphlive/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="MorphLive">
+<meta property="og:title" content="MorphLive: Experimental Local Webcam and Voice Effects Prototype">
+<meta property="og:description" content="MorphLive is an experimental, local-first webcam face replacement and voice-effects prototype for Apple Silicon. Realistic real-time transformation was not achieved; contributors welcome.">
+<meta property="og:url" content="https://shahrukhalid.github.io/morphlive/">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MorphLive: Experimental Local Webcam and Voice Effects Prototype">
+<meta name="twitter:description" content="MorphLive is an experimental, local-first webcam face replacement and voice-effects prototype for Apple Silicon. Realistic real-time transformation was not achieved; contributors welcome.">
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "MorphLive", "url": "https://shahrukhalid.github.io/morphlive/", "description": "MorphLive is an experimental, local-first webcam face replacement and voice-effects prototype for Apple Silicon. Realistic real-time transformation was not achieved; contributors welcome.", "applicationCategory": "MultimediaApplication", "operatingSystem": "macOS, Windows (experimental)", "programmingLanguage": "TypeScript", "license": "https://github.com/Shahrukhalid/morphlive/blob/main/LICENSE", "codeRepository": "https://github.com/Shahrukhalid/morphlive", "isAccessibleForFree": true, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "author": {"@type": "Person", "name": "Shahrukh Khalid", "url": "https://github.com/Shahrukhalid"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does MorphLive work?", "acceptedAnswer": {"@type": "Answer", "text": "Only partly. It has not delivered convincing, realistic, real-time full-appearance transformation. It replaces inner facial features, and the brief guarded camera check ran around 6 FPS. It is an experimental prototype, not a finished product."}}, {"@type": "Question", "name": "Can it change my hair, beard or head shape?", "acceptedAnswer": {"@type": "Answer", "text": "No. Full appearance transformation is not implemented; hair, outer beard and head shape remain original."}}, {"@type": "Question", "name": "Does it work in Zoom, Meet or Teams?", "acceptedAnswer": {"@type": "Answer", "text": "Not established. The source includes an experimental OBS Virtual Camera route, but compatibility across video-call apps has not been verified. The setup steps are integration instructions, not claims of completed tests."}}, {"@type": "Question", "name": "Does it upload my video or audio?", "acceptedAnswer": {"@type": "Answer", "text": "No. Processing stays local, with no capture uploads or telemetry."}}, {"@type": "Question", "name": "How can I help?", "acceptedAnswer": {"@type": "Answer", "text": "Open an issue with a concrete proposal or submit a focused pull request. Include the model and licence, minimum hardware, memory use, completed generated FPS and latency, test method and known limitations."}}, {"@type": "Question", "name": "What hardware is it aimed at?", "acceptedAnswer": {"@type": "Answer", "text": "Free, local processing on Apple Silicon with 16 GB memory is the primary target. Windows hardware support is not established."}}, {"@type": "Question", "name": "Is it safe to use for impersonation?", "acceptedAnswer": {"@type": "Answer", "text": "No. Use your own likeness or material you have permission to transform, and do not use MorphLive for deceptive impersonation, unauthorised likeness replication or nonconsensual voice cloning."}}]}</script>
+<style>
+:root{--bg:#fff;--fg:#1b1f24;--mut:#57606a;--card:#f6f8fa;--bd:#d0d7de;--ac:#5b3fb5;--acfg:#fff;--link:#5b3fb5}
+@media (prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--mut:#9da7b3;--card:#161b22;--bd:#30363d;--ac:#84e7cf;--acfg:#0d1117;--link:#84e7cf}}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--link)}a:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.skip{position:absolute;left:-999px}.skip:focus{left:8px;top:8px;background:var(--bg);padding:8px;z-index:9}
+.wrap{max-width:60rem;margin:0 auto;padding:0 16px}
+header.top{border-bottom:1px solid var(--bd)}header.top .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;padding-top:12px;padding-bottom:12px}
+header.top strong{margin-right:auto}nav a{margin-right:14px;text-decoration:none}
+.hero{padding:48px 0 24px}h1{font-size:clamp(1.8rem,5vw,2.75rem);line-height:1.15;margin:0 0 12px}
+.lead{font-size:1.15rem;color:var(--mut);margin:0 0 20px}
+.btn{display:inline-block;padding:10px 18px;border-radius:8px;background:var(--ac);color:var(--acfg);font-weight:600;text-decoration:none;margin:0 8px 8px 0}
+.btn.alt{background:transparent;color:var(--link);border:1px solid var(--bd)}
+h2{margin:40px 0 12px;font-size:1.5rem}h3{margin:0 0 6px;font-size:1.05rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px}.card p{margin:0;color:var(--mut)}
+.notice{border-left:4px solid var(--ac);background:var(--card);padding:12px 16px;border-radius:6px;margin:16px 0}
+pre{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:12px;overflow-x:auto;font-size:.9rem}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+img{max-width:100%;height:auto;border-radius:8px;border:1px solid var(--bd)}
+details{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px 14px;margin:8px 0}summary{cursor:pointer;font-weight:600}details p{margin:8px 0 0}
+ul.l{padding-left:1.2rem}ul.plain{list-style:none;padding:0;margin:0}ul.plain li{margin:6px 0}
+footer{border-top:1px solid var(--bd);margin-top:48px;padding:24px 0 40px;color:var(--mut);font-size:.95rem}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top"><div class="wrap"><strong>MorphLive</strong><nav aria-label="Main"><a href="#features">Features</a><a href="#quick-start">Quick start</a><a href="#faq">FAQ</a><a href="https://github.com/Shahrukhalid/morphlive">GitHub</a></nav></div></header>
+<main id="main"><div class="wrap">
+<section class="hero"><h1>MorphLive: experimental local webcam face-replacement and voice-effects prototype</h1><p class="lead">Experimental prototype. Original goal not achieved. Contributors welcome.</p><p>
+<a class="btn" href="#quick-start">Quick start</a><a class="btn alt" href="https://github.com/Shahrukhalid/morphlive">View on GitHub</a>
+<a class="btn alt" href="https://github.com/Shahrukhalid/morphlive/releases">Releases</a></p></section>
+<div class="notice" role="note"><strong>Project status: original goal not achieved (20 October 2026).</strong> MorphLive has not delivered convincing, realistic, real-time full-appearance transformation. It is an experimental code and research record, not a production-ready product. See the <a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/PERFORMANCE.md">measured limitations</a>.</div>
+<section aria-labelledby="what"><h2 id="what">What it is</h2>
+<p>MorphLive is an experimental prototype. As of 20 October 2026 it has not delivered convincing, realistic, real-time full-appearance transformation on the tested free, local Mac setup. The repository stays public as an experimental code and research record, not a finished or production-ready product.</p>
+<p>The current live engine replaces inner facial features while hair, outer beard and head shape remain original. The brief guarded camera check ran around 6 FPS, and the whole-frame replacement candidate failed visual quality and speed acceptance.</p>
+</section>
+<div class="notice" role="note"><strong>Limits.</strong> Full appearance transformation is not implemented. The current model changes inner facial features, leaves beard, hair and head shape unchanged, and can paint over hands crossing the face when occlusion detection fails. These are known failures, not camera-setting problems. No engine or future performance is promised until it passes measured acceptance.</div>
+<section aria-labelledby="features"><h2 id="features">Features</h2><div class="grid">
+<div class="card"><h3>Live webcam face replacement (GhostV2)</h3><p>The default engine replaces facial features in each camera frame and keeps your live scene. A reference portrait supplies the target identity.</p></div>
+<div class="card"><h3>Curated adult personas</h3><p>18 personas; public reference photos retain their original credits and licences.</p></div>
+<div class="card"><h3>Experimental virtual-camera route</h3><p>Source includes output to an installed OBS Virtual Camera. Compatibility across Zoom, Meet and Teams has not been established.</p></div>
+<div class="card"><h3>Local DSP voice pairing</h3><p>Independent pitch shifting, formant envelope control and a soft noise gate. These are generic DSP effects.</p></div>
+<div class="card"><h3>Local clip rendering</h3><p>Export local videos up to five minutes with frame-by-frame face replacement, capped at 1080p / 30 FPS.</p></div>
+<div class="card"><h3>Local processing</h3><p>No capture uploads or telemetry. Live capture is not recorded.</p></div>
+</div></section>
+<section aria-labelledby="privacy"><h2 id="privacy">Privacy and safety</h2><ul class="l">
+<li>Processing stays local; there are no capture uploads or telemetry.</li>
+<li>Camera and microphone do not start automatically, and a consent checkbox is required first.</li>
+<li>Emergency stop or the Escape key releases every output immediately.</li>
+<li>No real-person face or voice assets are included.</li>
+<li>Do not use it for deceptive impersonation, unauthorised likeness replication or nonconsensual voice cloning.</li>
+</ul></section>
+<section aria-labelledby="help"><h2 id="help">Help wanted</h2><p>Contributors and researchers are welcome. The goal is still realistic live appearance changes that follow expressions and movements. The primary target is free, local processing on Apple Silicon with 16 GB memory. Help is especially useful with:</p><ul class="l">
+<li>A suitable whole-head video model or engine with clear model and asset licences.</li>
+<li>Core ML, Metal or MLX implementations that improve completed-frame throughput without sacrificing natural texture, expression transfer or temporal stability.</li>
+<li>Reliable foreground segmentation and hand-occlusion handling.</li>
+<li>Reproducible latency, memory and received-video tests for Zoom, Meet or other video apps through a virtual camera.</li>
+</ul><p><a href="https://github.com/Shahrukhalid/morphlive/issues">Open an issue</a> with a concrete proposal, or see the <a href="https://github.com/Shahrukhalid/morphlive/blob/main/CONTRIBUTING.md">contribution guidance</a>. Use fictional or consenting adult test subjects.</p></section>
+<section aria-labelledby="quick-start"><h2 id="quick-start">Quick start</h2>
+<p>Requirements: Node.js 24 or newer, npm, a webcam and a microphone. Live video also needs the separately installed native runtime, landmark model and a local reference (see the neural runtime guide).</p>
+<h3>Run from source</h3><pre><code>git clone https://github.com/Shahrukhalid/morphlive.git
+cd morphlive
+npm install
+npm start</code></pre>
+<p>Or run ./start.sh on macOS/Linux or start.bat on Windows. No binary release is published and local packages are unsigned.</p></section>
+<section aria-labelledby="docs"><h2 id="docs">Documentation</h2><ul class="l">
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/PERFORMANCE.md">Measured performance and limitations</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/IMPLEMENTATION_STATUS.md">Implementation status</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/NEURAL_RUNTIME.md">Neural runtime setup</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/COMPATIBILITY.md">Compatibility record</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/MACOS_SETUP.md">macOS setup</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/WINDOWS_SETUP.md">Windows setup</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/VIRTUAL_CAMERA.md">Virtual camera</a></li>
+<li><a href="https://github.com/Shahrukhalid/morphlive/blob/main/docs/ARCHITECTURE.md">Architecture</a></li>
+</ul></section>
+<section aria-labelledby="faq"><h2 id="faq">Frequently asked questions</h2>
+<details><summary>Does MorphLive work?</summary><p>Only partly. It has not delivered convincing, realistic, real-time full-appearance transformation. It replaces inner facial features, and the brief guarded camera check ran around 6 FPS. It is an experimental prototype, not a finished product.</p></details>
+<details><summary>Can it change my hair, beard or head shape?</summary><p>No. Full appearance transformation is not implemented; hair, outer beard and head shape remain original.</p></details>
+<details><summary>Does it work in Zoom, Meet or Teams?</summary><p>Not established. The source includes an experimental OBS Virtual Camera route, but compatibility across video-call apps has not been verified. The setup steps are integration instructions, not claims of completed tests.</p></details>
+<details><summary>Does it upload my video or audio?</summary><p>No. Processing stays local, with no capture uploads or telemetry.</p></details>
+<details><summary>How can I help?</summary><p>Open an issue with a concrete proposal or submit a focused pull request. Include the model and licence, minimum hardware, memory use, completed generated FPS and latency, test method and known limitations.</p></details>
+<details><summary>What hardware is it aimed at?</summary><p>Free, local processing on Apple Silicon with 16 GB memory is the primary target. Windows hardware support is not established.</p></details>
+<details><summary>Is it safe to use for impersonation?</summary><p>No. Use your own likeness or material you have permission to transform, and do not use MorphLive for deceptive impersonation, unauthorised likeness replication or nonconsensual voice cloning.</p></details>
+</section>
+<section aria-labelledby="links"><h2 id="links">Project links</h2><ul class="plain">
+<li><a href="https://github.com/Shahrukhalid/morphlive">Source code on GitHub</a></li><li><a href="https://github.com/Shahrukhalid/morphlive/releases">Releases</a></li><li><a href="https://github.com/Shahrukhalid/morphlive/issues">Issues and feature requests</a></li>
+</ul></section>
+<section aria-labelledby="more"><h2 id="more">More projects by Shahrukh Khalid</h2><div class="grid">
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/stark-os">stark-os</a></h3><p>Self-hosted multi-agent social media manager; every post needs your approval.</p></div>
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/verilive">verilive</a></h3><p>In-browser deepfake check for video calls; video never leaves your device.</p></div>
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/nexonic-iptv">nexonic-iptv</a></h3><p>Free IPTV M3U playlists of legal, officially free live TV channels.</p></div>
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/nexonic-iptv-v2">nexonic-iptv-v2</a></h3><p>Self-hosted IPTV player and Xtream Codes server for free, legal TV.</p></div>
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/facevision-ai">facevision-ai</a></h3><p>Local, consent-based face detection, recognition and anonymisation.</p></div>
+<div class="card"><h3><a href="https://github.com/Shahrukhalid/nexonic-sentinel">nexonic-sentinel</a></h3><p>Free GitHub App that triages issues, reviews PRs and merges safe dependency updates.</p></div>
+</div></section></div></main>
+<footer><div class="wrap"><p>Experimental prototype. Not production-ready.</p><p>By <a href="https://github.com/Shahrukhalid">Shahrukh Khalid</a>. <a href="https://github.com/Shahrukhalid/morphlive">Source on GitHub</a>.</p></div></footer>
+</body>
+</html>
