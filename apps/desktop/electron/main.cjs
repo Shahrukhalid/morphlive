@@ -125,8 +125,8 @@ app.whenReady().then(() => {
   main.removeMenu();
   main.webContents.on('will-navigate', (event) => event.preventDefault());
   main.webContents.setWindowOpenHandler(() => ({action:'deny'}));
-  main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
+  return main.loadURL('morph://studio/index.html');
 }).catch(() => {
   // Startup failures (for example an unreadable bundled catalog) must not leave a
   // windowless process running. Details are not shown because they can contain paths.
