@@ -98,12 +98,17 @@ app.whenReady().then(() => {
   session.defaultSession.setPermissionCheckHandler((contents, permission, origin) => local(origin) && permission === 'media');
   session.defaultSession.setPermissionRequestHandler(async (contents, permission, callback, details) => {
     if (!local(details.requestingUrl || contents.getURL()) || permission !== 'media') return callback(false);
-    if (process.platform === 'darwin') {
-      for (const kind of details.mediaTypes || []) {
-        if (['audio', 'video'].includes(kind) && !await systemPreferences.askForMediaAccess(kind === 'audio' ? 'microphone' : 'camera')) return callback(false);
+    try {
+      if (process.platform === 'darwin') {
+        for (const kind of details.mediaTypes || []) {
+          if (['audio', 'video'].includes(kind) && !await systemPreferences.askForMediaAccess(kind === 'audio' ? 'microphone' : 'camera')) return callback(false);
+        }
       }
+      callback(true);
+    } catch {
+      // A rejected OS prompt must deny, not leave the request hanging.
+      callback(false);
     }
-    callback(true);
   });
   const settingsPath=path.join(app.getPath('userData'),'morphlive-preferences.json');
   ipcMain.on('preferences:load', event => {
@@ -122,6 +127,11 @@ app.whenReady().then(() => {
   main.webContents.setWindowOpenHandler(() => ({action:'deny'}));
   main.loadURL('morph://studio/index.html');
   main.on('closed', () => app.quit());
+}).catch(() => {
+  // Startup failures (for example an unreadable bundled catalog) must not leave a
+  // windowless process running. Details are not shown because they can contain paths.
+  dialog.showErrorBox('MorphLive could not start', 'The application files are missing or damaged. Reinstall or rebuild MorphLive.');
+  app.exit(1);
 });
 app.on('before-quit', () => {neural?.stop();clip?.cancel();session.defaultSession.flushStorageData();});
 app.on('window-all-closed', () => app.quit());

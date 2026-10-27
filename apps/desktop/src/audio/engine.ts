@@ -7,6 +7,9 @@ export class AudioEngine {
   context?: AudioContext; stream?: MediaStream; processor?: AudioWorkletNode; delay?: DelayNode;
   async start(device: string, sink: string, onLevel: (peak: number, latency: number) => void) {
     if (!sink) throw new Error('Select an explicit audio output first. Use headphones for monitoring or a virtual audio cable for calls.');
+    // Release any previous capture first so a repeated start can never orphan a
+    // live microphone track or an open AudioContext.
+    this.stop();
     const generation = ++this.generation;
     const cancelled = () => { if (generation !== this.generation) throw new DOMException('Audio start cancelled', 'AbortError'); };
     try {
