@@ -17,7 +17,7 @@ export function loadSettings(): Settings {
     for (const [key, min, max] of [['pitch',-12,12],['formant',-6,6],['robot',0,1],['gain',0,2],['intensity',0,1],['offset',0,250]] as const) if (Number.isFinite(saved[key])) value[key] = Math.min(max, Math.max(min, saved[key]));
     if (legacyPersonaIds.includes(saved.persona)) value.persona = saved.persona;
     if (['Performance','Balanced','Quality','Auto'].includes(saved.profile)) value.profile = saved.profile;
-    if (Array.isArray(saved.custom)) value.custom = saved.custom.slice(0,20).filter((p: Settings['custom'][number]) => typeof p.name === 'string' && p.name.length <= 40 && legacyPersonaIds.includes(p.persona) && Number.isFinite(p.pitch) && Math.abs(p.pitch) <= 12 && Number.isFinite(p.formant) && Math.abs(p.formant) <= 6 && Number.isFinite(p.robot) && p.robot >= 0 && p.robot <= 1);
+    if (Array.isArray(saved.custom)) value.custom = saved.custom.slice(0,20).filter((p: Settings['custom'][number] | null) => !!p && typeof p === 'object' && typeof p.name === 'string' && p.name.length <= 40 && legacyPersonaIds.includes(p.persona) && Number.isFinite(p.pitch) && Math.abs(p.pitch) <= 12 && Number.isFinite(p.formant) && Math.abs(p.formant) <= 6 && Number.isFinite(p.robot) && p.robot >= 0 && p.robot <= 1);
     return value;
   } catch { return { ...defaults }; }
 }
