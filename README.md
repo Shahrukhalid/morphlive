@@ -181,6 +181,15 @@ synthetic disclosure visible where relevant. Do not use MorphLive for deceptive
 impersonation, unauthorized likeness replication, or nonconsensual voice cloning.
 No real-person face or voice assets are included.
 
+## Roadmap
+
+Planned work that contributors can pick up. Each item becomes an issue with details; comment there to take it on.
+
+- [ ] Whole-head video model with a clear licence that runs locally on Apple Silicon with 16 GB memory
+- [ ] Foreground segmentation that keeps hands and objects in front of the face intact
+- [ ] Reproducible latency and memory test for Zoom or Meet through a virtual camera
+- [ ] Core ML or MLX path that raises completed-frame throughput without losing natural texture
+
 ## License
 
 Original MorphLive application source is MIT licensed.
