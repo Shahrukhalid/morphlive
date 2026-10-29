@@ -10,6 +10,8 @@ Local camera and voice-effects research. Community help welcome.
 ![License: MIT](https://img.shields.io/badge/license-MIT-84e7cf)
 ![Local first](https://img.shields.io/badge/processing-on_device-84e7cf)
 
+<p align="center"><img src="docs/demo.gif" alt="MorphLive project overview" width="820"></p>
+
 </div>
 
 **Website: <https://shahrukhalid.github.io/morphlive/>**
