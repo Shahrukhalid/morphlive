@@ -7,6 +7,8 @@ count as passing external integration tests.
 
 - OS: macOS 26.7.2, Apple Silicon arm64.
 - App: unsigned local MorphLive 0.1.0 bundle, Electron 42.11.15 / Chromium 148.
+  The project now targets Electron 45; camera and microphone capture on Electron 45
+  are NOT TESTED on hardware yet, so the results below apply to Electron 42 only.
 - Camera: physical webcam, 1280 × 720; live capture PASS in a short check.
 - Face landmarks: local Google model in the native Python engine; fictional-input integration PASS. Natural-motion quality remains unfulfilled.
 - Microphone: physical input → AudioWorklet → silent AudioContext sink; startup

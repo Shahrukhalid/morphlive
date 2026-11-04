@@ -14,6 +14,8 @@ media permission requests are accepted and OS permission is still required.
 Remote application traffic is denied. No arbitrary command execution or generic
 filesystem IPC is exposed to the renderer. A narrow preferences bridge only
 loads/saves a validated, size-limited settings schema at a fixed app-data file.
+Packaged builds flip Electron fuses to disable `ELECTRON_RUN_AS_NODE`,
+`NODE_OPTIONS` and the Node inspector command-line flags.
 
 Model downloads use a pinned URL, maximum accepted size, and pinned SHA-256.
 Models are not user-supplied executable plugins. No third-party drivers are

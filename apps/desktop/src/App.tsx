@@ -131,9 +131,13 @@ export function App() {
             captured.getTracks().forEach(t => t.stop());
             chosenCamera = physical.deviceId;
             setCamera(physical.deviceId);
+            // The virtual stream is already stopped here, so a failed re-open must
+            // not fall through and render from dead tracks.
             captured = await navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: physical.deviceId }, width: { ideal: width }, height: { ideal: width*9/16 }, frameRate: { ideal: 30, max: 30 } } });
           }
-        } catch {}
+        } catch (e) {
+          if (captured.getVideoTracks().every(t => t.readyState === 'ended')) throw e;
+        }
       }
       if (generation !== captureGeneration.current) { captured.getTracks().forEach(t => t.stop()); return; }
       stream.current=captured;
